@@ -1,0 +1,4 @@
+name: MireaModule
+author: DrKapdor
+main: fun.mirea.bukkit.MireaModulePlugin
+version: 1.0-SNAPSHOT
