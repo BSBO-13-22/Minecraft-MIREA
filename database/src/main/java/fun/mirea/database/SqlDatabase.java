@@ -3,6 +3,7 @@ package fun.mirea.database;
 import lombok.Getter;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.Optional;
 import java.util.Properties;
@@ -26,10 +27,13 @@ public class SqlDatabase implements Database {
     private CompletableFuture<Void> establishConnection(String url, Properties properties) {
         return CompletableFuture.runAsync(() -> {
             try {
+                Class.forName("org.postgresql.Driver").getDeclaredConstructor().newInstance();
                 if (connection == null || connection.isClosed())
                     connection = DriverManager.getConnection(url, properties);
                 isConnected = true;
-            } catch (SQLException e) {
+                execute("CREATE TABLE IF NOT EXISTS users (name VARCHAR(16) NOT NULL, data TEXT NOT NULL);");
+            } catch (SQLException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException |
+                     IllegalAccessException | InstantiationException e) {
                 e.printStackTrace();
             }
         });
@@ -40,9 +44,7 @@ public class SqlDatabase implements Database {
             if (isConnected) {
                 try {
                     Statement statement = connection.createStatement();
-                    Optional<ResultSet> optional = Optional.of(statement.executeQuery(query));
-                    statement.close();
-                    return optional;
+                    return Optional.of(statement.executeQuery(query));
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }

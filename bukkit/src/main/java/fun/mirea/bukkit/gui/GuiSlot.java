@@ -1,6 +1,6 @@
 package fun.mirea.bukkit.gui;
 
-import fun.mirea.common.utility.FormatUtils;
+import fun.mirea.bukkit.utility.FormatUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

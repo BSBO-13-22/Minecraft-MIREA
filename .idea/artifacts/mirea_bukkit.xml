@@ -1,0 +1,15 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="mirea-bukkit">
+    <output-path>$USER_HOME$/Desktop/mirea server/bukkit-server/plugins</output-path>
+    <root id="archive" name="mirea-bukkit.jar">
+      <element id="module-output" name="bukkit" />
+      <element id="module-output" name="common" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/co/aikar/acf-paper/0.5.1-SNAPSHOT/acf-paper-0.5.1-20220922.020802-18.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/postgresql/postgresql/42.5.0/postgresql-42.5.0.jar" path-in-jar="/" />
+      <element id="module-output" name="database" />
+      <element id="library" level="project" name="Maven: org.postgresql:postgresql:42.5.0" />
+      <element id="library" level="project" name="Maven: org.checkerframework:checker-qual:3.5.0" />
+    </root>
+  </artifact>
+</component>

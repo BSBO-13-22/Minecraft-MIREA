@@ -47,6 +47,11 @@
       <option name="url" value="https://repo1.maven.org/maven2" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="papermc" />
+      <option name="name" value="papermc" />
+      <option name="url" value="https://repo.papermc.io/repository/maven-public/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="httpclient" />
       <option name="name" value="httpclient" />
       <option name="url" value="https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient" />

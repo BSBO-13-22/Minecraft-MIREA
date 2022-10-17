@@ -1,4 +1,4 @@
-package fun.mirea.common.utility;
+package fun.mirea.bukkit.utility;
 
 import net.md_5.bungee.api.ChatColor;
 

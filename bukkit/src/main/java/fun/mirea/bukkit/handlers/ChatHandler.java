@@ -1,7 +1,7 @@
 package fun.mirea.bukkit.handlers;
 
 import fun.mirea.bukkit.MireaModulePlugin;
-import fun.mirea.common.utility.FormatUtils;
+import fun.mirea.bukkit.utility.FormatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;

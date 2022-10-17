@@ -1,15 +1,19 @@
 package fun.mirea.common.user;
 
-public interface MireaUser {
+import lombok.Getter;
+import lombok.Setter;
 
-    String getName();
+public class MireaUser {
 
-    void setInstitute(Institute institute);
+    @Getter
+    private final String name;
 
-    Institute getInstitute();
+    @Getter
+    @Setter
+    private Institute institute;
 
-    void setAuthenticationData(AuthenticationData authenticationData);
-
-    AuthenticationData getAuthenticationData();
+    public MireaUser(String name) {
+        this.name = name;
+    }
 
 }

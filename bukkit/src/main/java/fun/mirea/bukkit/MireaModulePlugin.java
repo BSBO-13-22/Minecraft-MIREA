@@ -9,6 +9,8 @@ import fun.mirea.bukkit.handlers.ChatHandler;
 import fun.mirea.bukkit.handlers.ConnectionHandler;
 import fun.mirea.bukkit.handlers.GuiHandler;
 import fun.mirea.common.multithreading.ThreadManager;
+import fun.mirea.common.user.UserManager;
+import fun.mirea.database.SqlDatabase;
 import lombok.Getter;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -26,6 +28,9 @@ public class MireaModulePlugin extends JavaPlugin {
     @Getter
     private static GuiManager guiManager;
 
+    @Getter
+    private static UserManager userManager;
+
     @Override
     public void onEnable() {
         init();
@@ -35,6 +40,7 @@ public class MireaModulePlugin extends JavaPlugin {
         commandManager = new PaperCommandManager(this);
         threadManager = new ThreadManager(Executors.newFixedThreadPool(16));
         guiManager = new GuiManager();
+        userManager = new UserManager(new SqlDatabase("jdbc:postgresql://localhost:5432/mirea", "root", "admin", false));
         registerCommands(new HelpCommand(), new GuiCommands());
         registerHandlers(new ChatHandler(), new ConnectionHandler(), new GuiHandler());
     }
