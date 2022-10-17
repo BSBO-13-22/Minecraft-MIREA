@@ -2,9 +2,19 @@
 <project version="4">
   <component name="RemoteRepositoriesConfiguration">
     <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="Central Repository" />
+      <option name="url" value="https://repo.maven.apache.org/maven2" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="aikar" />
       <option name="name" value="aikar" />
       <option name="url" value="https://repo.aikar.co/content/groups/aikar/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="velocity" />
+      <option name="name" value="velocity" />
+      <option name="url" value="https://repo.velocitypowered.com/snapshots/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="central" />
@@ -22,6 +32,11 @@
       <option name="url" value="https://repo.purpurmc.org/snapshots" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="elytrium-repo" />
+      <option name="name" value="elytrium-repo" />
+      <option name="url" value="https://maven.elytrium.net/repo/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="github" />
       <option name="name" value="github" />
       <option name="url" value="https://maven.pkg.github.com/funbazeru/funbazeapi" />
@@ -30,6 +45,11 @@
       <option name="id" value="central" />
       <option name="name" value="central" />
       <option name="url" value="https://repo1.maven.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="httpclient" />
+      <option name="name" value="httpclient" />
+      <option name="url" value="https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient" />
     </remote-repository>
   </component>
 </project>
