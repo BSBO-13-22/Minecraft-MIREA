@@ -32,8 +32,8 @@ public class UniversityScoreboard {
         }
     }
 
-    public void addPlayer(Player player) {
-        CompletableFuture.runAsync(() -> {
+    public CompletableFuture<Void> addPlayer(Player player) {
+        return CompletableFuture.runAsync(() -> {
             try {
                 MireaUser user = userManager.getUserCache().get(player.getName());
                 Team team = scoreboard.getTeam("яunknown");
@@ -50,12 +50,17 @@ public class UniversityScoreboard {
         });
     }
 
-    public void removePlayer(Player player) {
-        CompletableFuture.runAsync(() -> scoreboard.getTeams().forEach(team -> team.removeEntry(player.getName())));
+    public CompletableFuture<Void> removePlayer(Player player) {
+        return CompletableFuture.runAsync(() -> scoreboard.getTeams().forEach(team -> {
+            if (team.getEntries().contains(player.getName())) team.removeEntry(player.getName());
+        }));
     }
 
     public void updatePlayer(Player player) {
-        removePlayer(player);
-        addPlayer(player);
+        try {
+            removePlayer(player).complete(addPlayer(player).get());
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

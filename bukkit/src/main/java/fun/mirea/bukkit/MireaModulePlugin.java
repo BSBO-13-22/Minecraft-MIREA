@@ -40,6 +40,8 @@ public class MireaModulePlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         init();
+        registerCommands(new HelpCommand(), new GuiCommands(), new ProfileCommands(userManager, universityScoreboard));
+        registerHandlers(new ChatHandler(userManager), new ConnectionHandler(userManager, universityScoreboard), new GuiHandler(guiManager));
     }
 
     private void init() {
@@ -48,8 +50,6 @@ public class MireaModulePlugin extends JavaPlugin {
         guiManager = new GuiManager();
         userManager = new UserManager(new SqlDatabase("jdbc:postgresql://localhost:5432/mirea", "root", "admin", false));
         universityScoreboard = new UniversityScoreboard(userManager);
-        registerCommands(new HelpCommand(), new GuiCommands(), new ProfileCommands(userManager, universityScoreboard));
-        registerHandlers(new ChatHandler(userManager), new ConnectionHandler(userManager, universityScoreboard), new GuiHandler(guiManager));
     }
 
     private void registerCommands(BaseCommand... commands) {

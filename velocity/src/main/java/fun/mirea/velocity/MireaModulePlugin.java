@@ -67,50 +67,50 @@ public class MireaModulePlugin {
         instance = this;
     }
 
-    @Subscribe
-    public void onInitialize(ProxyInitializeEvent event) {
-        registerCommands();
-        Optional<RegisteredServer> server = this.getProxyServer().getServer("main");
-        server.ifPresent(registeredServer -> mainServer = registeredServer);
-
-        factory = (LimboFactory) this.proxyServer.getPluginManager().getPlugin("limboapi").flatMap(PluginContainer::getInstance).orElseThrow();
-        VirtualWorld world = this.factory.createVirtualWorld(Dimension.THE_END, 0, 0, 0, (float) 90, (float) 0.0);
-        authLimbo = factory.createLimbo(world).setName("AuthLimbo").setWorldTime(6000).registerCommand(new LimboCommandMeta(List.of("register")));
-    }
-
-    @Subscribe
-    public void onLoginLimboRegister(LoginLimboRegisterEvent event) {
-        event.addOnJoinCallback(() -> {
-            Player player = event.getPlayer();
-            ProxyServer proxyServer = this.proxyServer;
-            authLimbo.spawnPlayer(player, new LimboSessionHandler() {
-                @Override
-                public void onSpawn(Limbo server, LimboPlayer limboPlayer) {
-                    limboPlayer.disableFalling();
-                    Player player = limboPlayer.getProxyPlayer();
-                    try {
-                        MireaUser user = userManager.getUserCache().get(player.getUsername());
-                        //todo зареган
-                    } catch (CacheLoader.InvalidCacheLoadException e) {
-                        //todo Не зареган
-                        System.out.println("Not registened!");
-                        proxyServer.getScheduler().buildTask(instance, () -> {
-                            limboPlayer.disconnect(mainServer);
-                        }).delay(1, TimeUnit.SECONDS).schedule();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        });
-    }
-
-    private void registerCommands() {
-        CommandManager commandManager = proxyServer.getCommandManager();
-        CommandMeta commandMeta = commandManager.metaBuilder("register")
-                .aliases("reg")
-                .plugin(this)
-                .build();
-        commandManager.register(commandMeta, new RegisterCommand());
-    }
+//    @Subscribe
+//    public void onInitialize(ProxyInitializeEvent event) {
+//        registerCommands();
+//        Optional<RegisteredServer> server = this.getProxyServer().getServer("main");
+//        server.ifPresent(registeredServer -> mainServer = registeredServer);
+//
+//        factory = (LimboFactory) this.proxyServer.getPluginManager().getPlugin("limboapi").flatMap(PluginContainer::getInstance).orElseThrow();
+//        VirtualWorld world = this.factory.createVirtualWorld(Dimension.THE_END, 0, 0, 0, (float) 90, (float) 0.0);
+//        authLimbo = factory.createLimbo(world).setName("AuthLimbo").setWorldTime(6000).registerCommand(new LimboCommandMeta(List.of("register")));
+//    }
+//
+//    @Subscribe
+//    public void onLoginLimboRegister(LoginLimboRegisterEvent event) {
+//        event.addOnJoinCallback(() -> {
+//            Player player = event.getPlayer();
+//            ProxyServer proxyServer = this.proxyServer;
+//            authLimbo.spawnPlayer(player, new LimboSessionHandler() {
+//                @Override
+//                public void onSpawn(Limbo server, LimboPlayer limboPlayer) {
+//                    limboPlayer.disableFalling();
+//                    Player player = limboPlayer.getProxyPlayer();
+//                    try {
+//                        MireaUser user = userManager.getUserCache().get(player.getUsername());
+//                        //todo зареган
+//                    } catch (CacheLoader.InvalidCacheLoadException e) {
+//                        //todo Не зареган
+//                        System.out.println("Not registened!");
+//                        proxyServer.getScheduler().buildTask(instance, () -> {
+//                            limboPlayer.disconnect(mainServer);
+//                        }).delay(1, TimeUnit.SECONDS).schedule();
+//                    } catch (ExecutionException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            });
+//        });
+//    }
+//
+//    private void registerCommands() {
+//        CommandManager commandManager = proxyServer.getCommandManager();
+//        CommandMeta commandMeta = commandManager.metaBuilder("register")
+//                .aliases("reg")
+//                .plugin(this)
+//                .build();
+//        commandManager.register(commandMeta, new RegisterCommand());
+//    }
 }

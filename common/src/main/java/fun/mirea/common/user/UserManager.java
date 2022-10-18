@@ -30,7 +30,7 @@ public class UserManager {
                 //todo Событие выгрузки из кэша
             }).build(new CacheLoader<>() {
                 @Override
-                public MireaUser load(@NotNull String name) {
+                public @NotNull MireaUser load(@NotNull String name) {
                     try {
                         Optional<ResultSet> optional = database.executeQuery(String.format("SELECT * FROM users WHERE name = '%s'", name)).get();
                         if (optional.isPresent()) {
@@ -48,7 +48,7 @@ public class UserManager {
                     } catch (ExecutionException | InterruptedException | SQLException e) {
                         e.printStackTrace();
                     }
-                    return null;
+                    return new MireaUser(name);
                 }
             });
 

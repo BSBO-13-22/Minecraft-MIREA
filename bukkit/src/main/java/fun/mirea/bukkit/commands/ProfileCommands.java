@@ -60,12 +60,11 @@ public class ProfileCommands extends BaseCommand {
                     if (!jsonResponse.equals("[]")) {
                         jsonResponse = jsonResponse.substring(1, jsonResponse.length() - 1);
                         JsonObject course = JsonParser.parseString(jsonResponse).getAsJsonObject();
-                        UniversityData universityData = new UniversityData(
+                        return new UniversityData(
                                 course.get("unitName").getAsString(),
                                 course.get("groupName").getAsString(),
                                 course.get("groupSuffix").getAsString()
                         );
-                        return universityData;
                     }
                     return null;
                 } catch (IOException | IllegalArgumentException e) {
