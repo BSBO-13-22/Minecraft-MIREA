@@ -3,6 +3,7 @@ package fun.mirea.bukkit.handlers;
 import fun.mirea.bukkit.MireaModulePlugin;
 import fun.mirea.bukkit.gui.GuiManager;
 import fun.mirea.bukkit.gui.InventoryGui;
+import fun.mirea.common.user.UserManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,7 +16,11 @@ import java.util.concurrent.ExecutionException;
 
 public class GuiHandler implements Listener {
 
-    public GuiManager guiManager = MireaModulePlugin.getGuiManager();
+    private final GuiManager guiManager;
+
+    public GuiHandler(GuiManager guiManager) {
+        this.guiManager = guiManager;
+    }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) throws ExecutionException, InterruptedException {

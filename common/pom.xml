@@ -22,10 +22,6 @@
             <id>purpur</id>
             <url>https://repo.purpurmc.org/snapshots</url>
         </repository>
-        <repository>
-            <id>httpclient</id>
-            <url>https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient</url>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -34,11 +30,6 @@
             <artifactId>purpur-api</artifactId>
             <version>1.19-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.13</version>
         </dependency>
     </dependencies>
 

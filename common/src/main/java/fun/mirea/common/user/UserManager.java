@@ -39,6 +39,10 @@ public class UserManager {
                                 MireaUser user = gson.fromJson(resultSet.getString("data"), MireaUser.class);
                                 resultSet.close();
                                 return user;
+                            } else {
+                                MireaUser mireaUser = new MireaUser(name);
+                                createUser(mireaUser);
+                                return mireaUser;
                             }
                         }
                     } catch (ExecutionException | InterruptedException | SQLException e) {
@@ -48,11 +52,11 @@ public class UserManager {
                 }
             });
 
-    public void saveUser(MireaUser user) {
+    protected void createUser(MireaUser user) {
         database.execute(String.format("INSERT INTO users VALUES ('%s', '%s')", user.getName(), gson.toJson(user)));
     }
 
-    public void updateUser(MireaUser user) {
-        database.execute(String.format("UPDATE users SET (data = '%s') WHERE name = '%s'", gson.toJson(user), user.getName()));
+    protected void updateUser(MireaUser user) {
+        database.execute(String.format("UPDATE users SET data = '%s' WHERE name = '%s'", gson.toJson(user), user.getName()));
     }
 }

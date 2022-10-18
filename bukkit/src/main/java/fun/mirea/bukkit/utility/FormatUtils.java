@@ -13,7 +13,8 @@ public class FormatUtils {
         Matcher matcher = hexPattern.matcher(input);
         while (matcher.find()) {
             String color = input.substring(matcher.start(), matcher.end());
-            input = input.replace(color, "" + ChatColor.of(color.substring(1)));
+            if (!color.contains(String.valueOf(org.bukkit.ChatColor.COLOR_CHAR)))
+                input = input.replaceFirst(color, "" + ChatColor.of(color.substring(1)));
         }
         return ChatColor.translateAlternateColorCodes('&', input);
     }

@@ -10,10 +10,22 @@ public class MireaUser {
 
     @Getter
     @Setter
-    private Institute institute;
+    private UniversityData universityData;
 
     public MireaUser(String name) {
         this.name = name;
+    }
+
+    public boolean hasUniversityData() {
+        return universityData != null;
+    }
+
+    public void create(UserManager userManager) {
+        userManager.createUser(this);
+    }
+
+    public void save(UserManager userManager) {
+        userManager.updateUser(this);
     }
 
 }
