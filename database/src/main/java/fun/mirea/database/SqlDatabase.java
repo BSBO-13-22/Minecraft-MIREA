@@ -39,17 +39,17 @@ public class SqlDatabase implements Database {
         });
     }
 
-    public CompletableFuture<Optional<ResultSet>> executeQuery(String query) {
+    public CompletableFuture<ResultSet> executeQuery(String query) {
         return CompletableFuture.supplyAsync(() -> {
             if (isConnected) {
                 try {
                     Statement statement = connection.createStatement();
-                    return Optional.of(statement.executeQuery(query));
+                    return statement.executeQuery(query);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
             }
-            return Optional.empty();
+            return null;
         });
     }
 

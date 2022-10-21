@@ -1,0 +1,7 @@
+name: mirea-purpur
+author: DrKapdor
+main: fun.mirea.purpur.MireaModulePlugin
+version: 1.0-SNAPSHOT
+api-version: 1.19
+description: Плагин разработан специально для сервера сообщества студенов МИРЭА.
+website: https://drkapdor.github.io/

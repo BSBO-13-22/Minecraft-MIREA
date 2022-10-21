@@ -1,0 +1,15 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="mirea-velocity">
+    <output-path>$USER_HOME$/Desktop/mirea server/velocity-server/plugins</output-path>
+    <root id="archive" name="mirea-velocity.jar">
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/code/gson/gson/2.8.1/gson-2.8.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/moandjiezana/toml/toml4j/0.7.2/toml4j-0.7.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/postgresql/postgresql/42.5.0/postgresql-42.5.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar" path-in-jar="/" />
+      <element id="module-output" name="velocity" />
+      <element id="module-output" name="database" />
+      <element id="module-output" name="common" />
+    </root>
+  </artifact>
+</component>

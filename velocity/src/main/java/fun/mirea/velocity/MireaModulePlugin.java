@@ -1,37 +1,27 @@
 package fun.mirea.velocity;
 
-import com.google.common.cache.CacheLoader;
 import com.google.inject.Inject;
-import com.velocitypowered.api.command.CommandManager;
-import com.velocitypowered.api.command.CommandMeta;
-import com.velocitypowered.api.command.SimpleCommand;
-import com.velocitypowered.api.event.ResultedEvent;
+import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.ProxyPingEvent;
 import com.velocitypowered.api.plugin.Plugin;
-import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
-import com.velocitypowered.api.proxy.ConnectionRequestBuilder;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.proxy.server.RegisteredServer;
-import fun.mirea.common.user.MireaUser;
+import com.velocitypowered.api.proxy.server.ServerPing;
+import fun.mirea.common.server.Configuration;
+import fun.mirea.common.user.PlayerProvider;
 import fun.mirea.common.user.UserManager;
 import fun.mirea.database.SqlDatabase;
-import fun.mirea.velocity.command.RegisterCommand;
 import lombok.Getter;
-import net.elytrium.limboapi.api.Limbo;
-import net.elytrium.limboapi.api.LimboFactory;
-import net.elytrium.limboapi.api.LimboSessionHandler;
-import net.elytrium.limboapi.api.chunk.Dimension;
-import net.elytrium.limboapi.api.chunk.VirtualWorld;
-import net.elytrium.limboapi.api.command.LimboCommandMeta;
-import net.elytrium.limboapi.api.event.LoginLimboRegisterEvent;
-import net.elytrium.limboapi.api.player.LimboPlayer;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextColor;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -45,72 +35,84 @@ public class MireaModulePlugin {
     @Getter
     private static MireaModulePlugin instance;
     @Getter
+    private static Configuration configuration;
+    @Getter
+    private static UserManager<Player> userManager;
+    @Getter
     private final ProxyServer proxyServer;
     @Getter
     private final Logger logger;
     @Getter
     private final Path dataDirectory;
 
-    private final UserManager userManager;
-
-    private LimboFactory factory;
-    private Limbo authLimbo;
-    private RegisteredServer mainServer;
+    private static int registeredUsers = 0;
 
     @Inject
     public MireaModulePlugin(ProxyServer proxyServer, Logger logger, @DataDirectory Path dataDirectory) {
         this.proxyServer = proxyServer;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
-        this.userManager = new UserManager(new SqlDatabase("jdbc:postgresql://localhost:5432/mirea", "root", "admin", false));
-        logger.info("Hello there! I made my first plugin with Velocity.");
-        instance = this;
     }
 
-//    @Subscribe
-//    public void onInitialize(ProxyInitializeEvent event) {
-//        registerCommands();
-//        Optional<RegisteredServer> server = this.getProxyServer().getServer("main");
-//        server.ifPresent(registeredServer -> mainServer = registeredServer);
-//
-//        factory = (LimboFactory) this.proxyServer.getPluginManager().getPlugin("limboapi").flatMap(PluginContainer::getInstance).orElseThrow();
-//        VirtualWorld world = this.factory.createVirtualWorld(Dimension.THE_END, 0, 0, 0, (float) 90, (float) 0.0);
-//        authLimbo = factory.createLimbo(world).setName("AuthLimbo").setWorldTime(6000).registerCommand(new LimboCommandMeta(List.of("register")));
-//    }
-//
-//    @Subscribe
-//    public void onLoginLimboRegister(LoginLimboRegisterEvent event) {
-//        event.addOnJoinCallback(() -> {
-//            Player player = event.getPlayer();
-//            ProxyServer proxyServer = this.proxyServer;
-//            authLimbo.spawnPlayer(player, new LimboSessionHandler() {
-//                @Override
-//                public void onSpawn(Limbo server, LimboPlayer limboPlayer) {
-//                    limboPlayer.disableFalling();
-//                    Player player = limboPlayer.getProxyPlayer();
-//                    try {
-//                        MireaUser user = userManager.getUserCache().get(player.getUsername());
-//                        //todo зареган
-//                    } catch (CacheLoader.InvalidCacheLoadException e) {
-//                        //todo Не зареган
-//                        System.out.println("Not registened!");
-//                        proxyServer.getScheduler().buildTask(instance, () -> {
-//                            limboPlayer.disconnect(mainServer);
-//                        }).delay(1, TimeUnit.SECONDS).schedule();
-//                    } catch (ExecutionException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            });
-//        });
-//    }
-//
-//    private void registerCommands() {
-//        CommandManager commandManager = proxyServer.getCommandManager();
-//        CommandMeta commandMeta = commandManager.metaBuilder("register")
-//                .aliases("reg")
-//                .plugin(this)
-//                .build();
-//        commandManager.register(commandMeta, new RegisterCommand());
-//    }
+    private void createFiles() {
+        File dataFolder = dataDirectory.toFile();
+        if (!dataFolder.exists())
+            dataFolder.mkdir();
+        File configFile = new File(dataFolder + File.separator + "config.toml");
+        if (!configFile.exists()) {
+            try {
+                configuration = new Configuration("localhost", 5432, "mirea", "postgres", "admin");
+                if (configFile.createNewFile()) configuration.toFile(configFile.getPath()).get();
+            } catch (IOException | ExecutionException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                configuration = Configuration.fromFile(configFile).get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void runRegisteredUsersUpdater() {
+        proxyServer.getScheduler().buildTask(this, () -> {
+            try {
+                registeredUsers = userManager.getTotalUsersCount().get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }).repeat(10, TimeUnit.SECONDS).schedule();
+    }
+
+    @Subscribe
+    public void onInitialize(ProxyInitializeEvent event) {
+        createFiles();
+        instance = this;
+        userManager = new UserManager<>(name -> {
+            Optional<Player> optional = proxyServer.getPlayer(name);
+            return optional.orElse(null);
+        }, new SqlDatabase("jdbc:postgresql://" + configuration.getDbHost() + ":" + configuration.getDbPort() + "/" + configuration.getDbName(),
+                configuration.getDbUser(), configuration.getDbUserPassword(), false));
+        runRegisteredUsersUpdater();
+    }
+
+    @Subscribe(order = PostOrder.EARLY)
+    public void onServerPing(ProxyPingEvent event) {
+        ServerPing defaultPing = event.getPing();
+        TextComponent motd = Component.text()
+                .append(Component.text("МИРЭА").color(TextColor.fromHexString("#faa61a")))
+                .append(Component.text(" — Российский кубический сервер").color(TextColor.fromHexString("#2688c8")))
+                .append(Component.newline())
+                .append(Component.text("§fПроект посетили уже §e" + registeredUsers + " §fстудентов!")).build();
+        ServerPing serverPing = ServerPing.builder()
+                .favicon(defaultPing.getFavicon().get())
+                .description(motd)
+                .version(new ServerPing.Version(760, "МИРЭА"))
+                .maximumPlayers(proxyServer.getPlayerCount() + 1)
+                .onlinePlayers(proxyServer.getPlayerCount())
+                .build();
+        event.setPing(serverPing);
+    }
+
 }
