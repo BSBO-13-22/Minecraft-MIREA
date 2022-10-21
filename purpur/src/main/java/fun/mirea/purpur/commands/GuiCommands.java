@@ -37,11 +37,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 public class GuiCommands extends BaseCommand {
 
@@ -103,45 +100,6 @@ public class GuiCommands extends BaseCommand {
         } else player.sendMessage(Component.text("§cДля начала укажите свою группу! Используйте: §6/setgroup <группа> &8(Прим. БСБО-13-22)"));
     }
 
-//                    try {
-//        ChestGui chestGui = new ChestGui(data.getGroupName() + " | Неделя " + currentWeek, 1);
-//        chestGui.open(player);
-//        JsonArray schedule = jsonObject.get("schedule").getAsJsonArray();
-//        int i = 0;
-//        for (JsonElement day : schedule) {
-//            GuiSlot.GuiSlotBuilder slotBuilder = GuiSlot.builder()
-//                    .material(Material.LECTERN)
-//                    .amount(i + 1)
-//                    .displayName("&a&l" + FormatUtils.capitalize(day.getAsJsonObject().get("day").getAsString()));
-//            List<String> lore = new ArrayList<>();
-//            lore.add(" ");
-//            JsonArray lessons = day.getAsJsonObject().getAsJsonArray(currentWeek % 2 == 0 ? "even" : "odd");
-//            int k = 1;
-//            for (JsonElement lesson : lessons) {
-//                JsonArray lessonArray = lesson.getAsJsonArray();
-//                if (!lessonArray.isEmpty()) {
-//                    JsonObject lessonObject = lessonArray.get(0).getAsJsonObject();
-//                    lore.add(" &8№" + k + ". &e" + lessonObject.get("name").getAsString() + " &7(" + lessonObject.get("type").getAsString() + ")");
-//                    JsonElement placeElement = lessonObject.get("place");
-//                    JsonElement tutorElement = lessonObject.get("tutor");
-//                    if (!placeElement.isJsonNull() || !tutorElement.isJsonNull())
-//                        lore.add((tutorElement.isJsonNull() ? "      " : "      &6" + tutorElement.getAsString()) +
-//                                (placeElement.isJsonNull() ? "" : " &7" + placeElement.getAsString() + ""));
-//                }
-//                k++;
-//            }
-//            lore.add(" ");
-//            lore.add("&fИсточник: &3&nmirea.xyz");
-//            slotBuilder.lore(lore);
-//            chestGui.addSlot(i, slotBuilder.build());
-//            i++;
-//        }
-//        guiManager.saveGui(player.getName(), "schedule", chestGui);
-//        chestGui.load();
-//    } catch (Exception e) {
-//        e.printStackTrace();
-//    }
-
     private CompletableFuture<JsonObject> getGroupSchedule(String groupName) {
         return  CompletableFuture.supplyAsync(() -> {
             HttpClientBuilder clientBuilder = HttpClients.custom();
@@ -149,9 +107,12 @@ public class GuiCommands extends BaseCommand {
             CloseableHttpClient httpClient = clientBuilder.build();
             HttpGet httpGet = new HttpGet("https://mirea.xyz/api/v1.3/groups/certain?name=" + groupName);
             try {
-                HttpResponse httpResponse = httpClient.execute(httpGet);
-                return JsonParser.parseReader(new InputStreamReader(httpResponse.getEntity().getContent(), StandardCharsets.UTF_8))
+                CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
+                JsonObject schedule = JsonParser.parseReader(new InputStreamReader(httpResponse.getEntity().getContent(), StandardCharsets.UTF_8))
                         .getAsJsonArray().get(0).getAsJsonObject();
+                httpResponse.close();
+                httpClient.close();
+                return schedule;
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
@@ -166,8 +127,11 @@ public class GuiCommands extends BaseCommand {
             CloseableHttpClient httpClient = clientBuilder.build();
             HttpGet httpGet = new HttpGet("https://mirea.xyz/api/v1.3/time/week");
             try {
-                HttpResponse response = httpClient.execute(httpGet);
-                return Integer.parseInt(new BufferedReader(new InputStreamReader(response.getEntity().getContent())).readLine());
+                CloseableHttpResponse response = httpClient.execute(httpGet);
+                int currentWeek = Integer.parseInt(new BufferedReader(new InputStreamReader(response.getEntity().getContent())).readLine());
+                response.close();
+                httpClient.close();
+                return currentWeek;
             } catch (IOException e) {
                 e.printStackTrace();
                 return 0;

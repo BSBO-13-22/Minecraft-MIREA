@@ -2,6 +2,7 @@ package fun.mirea.purpur.gui;
 
 import fun.mirea.purpur.MireaModulePlugin;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -18,7 +19,7 @@ public class ChestGui implements InventoryGui {
     private final Map<Integer, GuiSlot> slotMap;
 
     public ChestGui(String title, int rows) {
-        inventory = Bukkit.createInventory(null, 9 * rows, title);
+        inventory = Bukkit.createInventory(null, 9 * rows, Component.text(title));
         slotMap = new HashMap<>();
     }
 
@@ -34,8 +35,6 @@ public class ChestGui implements InventoryGui {
 
     @Override
     public void addSlot(int slot, GuiSlot guiSlot) {
-        //int slot = (x - 1) + ((y - 1) * 9);
-        //inventory.setItem(slot, guiSlot.toItemStack());
         slotMap.put(slot, guiSlot);
     }
 
@@ -45,31 +44,27 @@ public class ChestGui implements InventoryGui {
             if (slotMap.containsKey(slot)) {
                 ClickEvents events = slotMap.get(slot).getClickEvents();
                 switch (clickType) {
-                    case RIGHT: {
+                    case RIGHT -> {
                         Runnable runnable = events.getRightClickHandler();
                         if (runnable != null)
                             CompletableFuture.runAsync(runnable, MireaModulePlugin.getThreadManager().getExecutorService());
-                        break;
                     }
-                    case SHIFT_LEFT: {
+                    case SHIFT_LEFT -> {
                         Runnable runnable = events.getLeftShiftClickHandler();
                         if (runnable != null)
                             CompletableFuture.runAsync(runnable, MireaModulePlugin.getThreadManager().getExecutorService());
-                        break;
                     }
-                    case SHIFT_RIGHT: {
+                    case SHIFT_RIGHT -> {
                         Runnable runnable = events.getRightShiftClickHandler();
                         if (runnable != null)
                             CompletableFuture.runAsync(runnable, MireaModulePlugin.getThreadManager().getExecutorService());
-                        break;
                     }
-                    case MIDDLE: {
+                    case MIDDLE -> {
                         Runnable runnable = events.getMiddleClickHandler();
                         if (runnable != null)
                             CompletableFuture.runAsync(runnable, MireaModulePlugin.getThreadManager().getExecutorService());
-                        break;
                     }
-                    default: {
+                    default -> {
                         Runnable runnable = events.getLeftClickHandler();
                         if (runnable != null)
                             CompletableFuture.runAsync(runnable, MireaModulePlugin.getThreadManager().getExecutorService());

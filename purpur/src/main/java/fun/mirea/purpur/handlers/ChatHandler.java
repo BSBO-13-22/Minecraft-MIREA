@@ -6,7 +6,6 @@ import fun.mirea.common.user.university.Institute;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.university.UniversityData;
 import fun.mirea.common.user.UserManager;
-import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.BuildableComponent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentBuilder;
@@ -17,14 +16,12 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import java.text.SimpleDateFormat;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,22 +45,6 @@ public class ChatHandler implements Listener {
             Component formatComponent = getJsonFormat(user, event.getMessage());
             Bukkit.getOnlinePlayers().forEach(online -> online.sendMessage(formatComponent));
             MireaModulePlugin.getInstance().getLogger().info(String.format("%s отправил сообщение \"%s\"", player.getName(), event.getMessage()));
-//        String chatPrefix = "&7";
-//        String nameColor = "&7";
-//        if (user.hasUniversityData()) {
-//            Institute institute = Institute.of(user.getUniversityData().getInstitute());
-//            if (institute != null) {
-//                chatPrefix = institute.getPrefix();
-//                nameColor = "&" + institute.getColorScheme();
-//            }
-//        }
-//        String date = new SimpleDateFormat("HH:mm").format(System.currentTimeMillis());
-//        event.setFormat(
-//                FormatUtils.colorize("&8[" + date + "] ") +
-//                        FormatUtils.colorize(chatPrefix) + " " +
-//                        FormatUtils.colorize(nameColor) +
-//                        FormatUtils.colorize(user.getName() + "&7: &f") +
-//                        event.getMessage());
         }
     }
 
@@ -90,6 +71,7 @@ public class ChatHandler implements Listener {
                 toBuilder().append(parseMessage(ChatColor.translateAlternateColorCodes('&', message))).build();
         return builder.append(timeComponent).append(prefixBuilder.build()).append(nameComponent).append(messageComponent).build();
     }
+
     private BuildableComponent<TextComponent, TextComponent.Builder> parseMessage(String message) throws ExecutionException {
         ComponentBuilder<TextComponent, TextComponent.Builder> builder = Component.text();
         Component partComponent = null;
@@ -128,51 +110,4 @@ public class ChatHandler implements Listener {
         }
         return builder.build();
     }
-
-//    private CompletableFuture<String> processMentions(String sender, final String message) {
-//        return CompletableFuture.supplyAsync(() -> {
-//            String formattedMessage = message;
-//            Matcher matcher = mentionPattern.matcher(message);
-//            Set<String> names = new HashSet<>();
-//            while (matcher.find()) {
-//                String mention = message.substring(matcher.start(), matcher.end());
-//                String mentionColor = "&7";
-//                try {
-//                    MireaUser mentionedUser = userManager.getUserCache().get(mention.substring(1));
-//                    if (mentionedUser.hasUniversityData()) {
-//                        Institute institute = Institute.of(mentionedUser.getUniversityData().getInstitute());
-//                        if (institute != null)
-//                            mentionColor = "&" + institute.getColorScheme();
-//                    }
-//                } catch (ExecutionException ignored) {
-//                }
-//                formattedMessage = formattedMessage.replace(mention, mentionColor + mention);
-//                names.add(mention.substring(1));
-//            }
-//            String mentorPrefix = "&7";
-//            String mentorColor = "&7";
-//            try {
-//                MireaUser mentorUser = userManager.getUserCache().get(sender);
-//                if (mentorUser.hasUniversityData()) {
-//                    Institute institute = Institute.of(mentorUser.getUniversityData().getInstitute());
-//                    if (institute != null) {
-//                        mentorPrefix = institute.getPrefix();
-//                        mentorColor = "&" + institute.getColorScheme();
-//                    }
-//                }
-//            } catch (ExecutionException ignored) {
-//            }
-//            String finalMentorPrefix = mentorPrefix;
-//            String finalMentorColor = mentorColor;
-//            names.forEach(name -> {
-//                Player player = Bukkit.getPlayerExact(name);
-//                if (player != null) {
-//                    player.playSound(player.getEyeLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-//                    player.sendActionBar(FormatUtils.colorize(finalMentorPrefix) + FormatUtils.colorize(finalMentorColor) + sender + FormatUtils.colorize("&7 упомянул Вас в чате!"));
-//                }
-//            });
-//            return formattedMessage;
-//        }, MireaModulePlugin.getThreadManager().getExecutorService());
-//    }
-
 }
