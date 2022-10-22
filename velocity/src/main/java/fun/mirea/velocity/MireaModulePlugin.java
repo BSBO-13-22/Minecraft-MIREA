@@ -11,8 +11,10 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
 import fun.mirea.common.server.Configuration;
+import fun.mirea.common.server.ConsoleLogger;
 import fun.mirea.common.user.PlayerProvider;
 import fun.mirea.common.user.UserManager;
+import fun.mirea.database.Database;
 import fun.mirea.database.SqlDatabase;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
@@ -27,7 +29,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-@Plugin(id = "mireamodule", name = "MireaModule", version = "1.0-SNAPSHOT",
+@Plugin(id = "mirea-velocity", name = "mirea-velocity", version = "1.0-SNAPSHOT",
         url = "https://www.mirea.fun", description = "MireaModule for Velocity", authors = {"DrKapdor"})
 
 public class MireaModulePlugin {
@@ -36,6 +38,8 @@ public class MireaModulePlugin {
     private static MireaModulePlugin instance;
     @Getter
     private static Configuration configuration;
+    @Getter
+    private static Database database;
     @Getter
     private static UserManager<Player> userManager;
     @Getter
@@ -89,11 +93,26 @@ public class MireaModulePlugin {
     public void onInitialize(ProxyInitializeEvent event) {
         createFiles();
         instance = this;
+        database = new SqlDatabase("jdbc:postgresql://" + configuration.getDbHost() + ":" + configuration.getDbPort() + "/" + configuration.getDbName(),
+                configuration.getDbUser(), configuration.getDbUserPassword(), false);
         userManager = new UserManager<>(name -> {
             Optional<Player> optional = proxyServer.getPlayer(name);
             return optional.orElse(null);
-        }, new SqlDatabase("jdbc:postgresql://" + configuration.getDbHost() + ":" + configuration.getDbPort() + "/" + configuration.getDbName(),
-                configuration.getDbUser(), configuration.getDbUserPassword(), false));
+        }, database, new ConsoleLogger() {
+                @Override
+                public void log(String info) {
+                    getLogger().info(info);
+                }
+                @Override
+                public void error(StackTraceElement[] error) {
+                    for (StackTraceElement element : error)
+                        getLogger().severe(element.toString());
+                }
+                @Override
+                public void error(String error) {
+                    getLogger().severe(error);
+                }
+        });
         runRegisteredUsersUpdater();
     }
 

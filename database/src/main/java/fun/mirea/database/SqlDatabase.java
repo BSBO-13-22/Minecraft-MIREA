@@ -1,87 +1,90 @@
 package fun.mirea.database;
 
-import lombok.Getter;
-
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
 public class SqlDatabase implements Database {
 
-    private Connection connection;
-    @Getter
-    private boolean isConnected;
 
-    //jdbc:postgresql://localhost/test
+    private final String url;
+    private final Properties properties;
+    private Connection connection;
+
     public SqlDatabase(String url, String user, String password, boolean ssl) {
-        Properties properties = new Properties();
+        this.url = url;
+        properties = new Properties();
         properties.setProperty("user", user);
         properties.setProperty("password", password);
         properties.setProperty("ssl", String.valueOf(ssl));
-        establishConnection(url, properties);
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        execute("CREATE TABLE IF NOT EXISTS users (name VARCHAR(16) NOT NULL, data TEXT NOT NULL);");
     }
 
-    private CompletableFuture<Void> establishConnection(String url, Properties properties) {
-        return CompletableFuture.runAsync(() -> {
+    private CompletableFuture<Connection> establishConnection() {
+        return CompletableFuture.supplyAsync(() -> {
             try {
-                Class.forName("org.postgresql.Driver").getDeclaredConstructor().newInstance();
-                if (connection == null || connection.isClosed())
+                if (connection == null || connection.isClosed()) {
                     connection = DriverManager.getConnection(url, properties);
-                isConnected = true;
-                execute("CREATE TABLE IF NOT EXISTS users (name VARCHAR(16) NOT NULL, data TEXT NOT NULL);");
-            } catch (SQLException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException |
-                     IllegalAccessException | InstantiationException e) {
+                }
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
+            return connection;
         });
     }
 
-    public CompletableFuture<ResultSet> executeQuery(String query) {
-        return CompletableFuture.supplyAsync(() -> {
-            if (isConnected) {
-                try {
-                    Statement statement = connection.createStatement();
-                    return statement.executeQuery(query);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            return null;
-        });
-    }
-
-    public CompletableFuture<Integer> executeUpdate(String update) {
-        return CompletableFuture.supplyAsync(() -> {
-            if (isConnected) {
-                try {
-                    Statement statement = connection.createStatement();
-                    int result = statement.executeUpdate(update);
-                    statement.close();
-                    return result;
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            return 0;
-        });
-    }
-
-    public CompletableFuture<Boolean> execute(String execution) {
-        return CompletableFuture.supplyAsync(() -> {
-            if (isConnected) {
-                try {
-                    Statement statement = connection.createStatement();
-                    boolean result = statement.execute(execution);
-                    statement.close();
-                    return result;
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
+    @Override
+    public boolean isConnectionEstablished() {
+        try {
+            return connection != null && !connection.isClosed();
+        } catch (SQLException e) {
             return false;
+        }
+    }
+
+    @Override
+    public CompletableFuture<ExecutionResult<ResultSet>> executeQuery(String query) {
+        return establishConnection().thenApplyAsync(established -> {
+            try {
+                Statement statement = established.createStatement();
+                return new ExecutionResult<>(ExecutionState.SUCCESS, null, null, statement.executeQuery(query));
+            } catch (SQLException e) {
+                return new ExecutionResult<>(ExecutionState.FAILED, e.getMessage(), e.getStackTrace(), null);
+            }
+        });
+    }
+
+    @Override
+    public CompletableFuture<ExecutionResult<Integer>> executeUpdate(String update) {
+        return establishConnection().thenApplyAsync(established -> {
+            try {
+                Statement statement = established.createStatement();
+                int result = statement.executeUpdate(update);
+                statement.close();
+                return new ExecutionResult<>(ExecutionState.SUCCESS, null, null, result);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return new ExecutionResult<>(ExecutionState.FAILED, e.getMessage(), e.getStackTrace(), 0);
+            }
+        });
+    }
+
+    @Override
+    public CompletableFuture<ExecutionResult<Void>> execute(String execution) {
+        return establishConnection().thenApplyAsync(established -> {
+            try {
+                Statement statement = established.createStatement();
+                statement.execute(execution);
+                statement.close();
+                return new ExecutionResult<>(ExecutionState.SUCCESS, null, null, null);
+            } catch (SQLException e) {
+                return new ExecutionResult<>(ExecutionState.FAILED, e.getMessage(), e.getStackTrace(), null);
+            }
         });
     }
 }

@@ -1,14 +1,10 @@
 package fun.mirea.common.user;
 
-import com.velocitypowered.api.proxy.ProxyServer;
 import fun.mirea.common.user.university.UniversityData;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.pointer.Pointer;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 public class MireaUser<T> {
 
@@ -28,6 +24,8 @@ public class MireaUser<T> {
 
     public MireaUser(String name) {
         this.name = name;
+        this.universityData = UniversityData.NULL;
+        this.studentName = StudentName.NULL;
     }
 
     public T getPlayer() {
@@ -38,7 +36,11 @@ public class MireaUser<T> {
         return universityData != null;
     }
 
-    protected void create(UserManager<T> userManager) {
+    public boolean hasStudentName() {
+        return studentName != null;
+    }
+
+    public void create(UserManager<T> userManager) {
         userManager.createUser(this);
     }
 

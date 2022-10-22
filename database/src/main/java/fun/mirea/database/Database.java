@@ -6,9 +6,11 @@ import java.util.concurrent.CompletableFuture;
 
 public interface Database {
 
-    CompletableFuture<ResultSet> executeQuery(String query);
+    boolean isConnectionEstablished();
 
-    CompletableFuture<Integer> executeUpdate(String update);
+    CompletableFuture<ExecutionResult<ResultSet>> executeQuery(String query);
 
-    CompletableFuture<Boolean> execute(String execution);
+    CompletableFuture<ExecutionResult<Integer>> executeUpdate(String update);
+
+    CompletableFuture<ExecutionResult<Void>> execute(String execution);
 }

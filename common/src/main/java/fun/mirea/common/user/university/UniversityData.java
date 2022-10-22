@@ -5,6 +5,8 @@ import lombok.Setter;
 
 public final class UniversityData {
 
+    public static UniversityData NULL = new UniversityData();
+
     @Getter
     @Setter
     private String institute;
@@ -19,5 +21,11 @@ public final class UniversityData {
         this.institute = institute;
         this.groupName = groupName;
         this.groupSuffix = groupSuffix;
+    }
+
+    private UniversityData() {
+        this.institute = "UNKNOWN";
+        this.groupName = "Нет данных";
+        this.groupSuffix = "";
     }
 }

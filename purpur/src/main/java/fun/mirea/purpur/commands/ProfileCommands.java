@@ -1,19 +1,21 @@
 package fun.mirea.purpur.commands;
 
 import co.aikar.commands.BaseCommand;
-import co.aikar.commands.CommandHelp;
-import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.*;
 import co.aikar.commands.annotation.HelpCommand;
-import co.aikar.commands.annotation.Subcommand;
-import co.aikar.commands.annotation.Syntax;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import fun.mirea.common.user.StudentName;
 import fun.mirea.purpur.scoreboard.UniversityScoreboard;
 import fun.mirea.purpur.utility.FormatUtils;
 import fun.mirea.common.user.university.Institute;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.university.UniversityData;
 import fun.mirea.common.user.UserManager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentBuilder;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextColor;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -44,51 +46,105 @@ public class ProfileCommands extends BaseCommand {
         this.scoreboard = scoreboard;
     }
 
-    @Subcommand("setgroup")
+    @Subcommand("profile")
+    @Syntax("[никнейм]")
+    @CommandCompletion("@users")
+    public void onProfileSubcommand(MireaUser<Player> user, String nickname) throws ExecutionException {
+        if (nickname == null)
+            nickname = user.getName();
+        userManager.getUserCache().get(nickname).ifPresent(target -> {
+            ComponentBuilder<TextComponent, TextComponent.Builder> builder = Component.text().append(Component.newline())
+                    .append(Component.text(FormatUtils.colorize("&a&l Карточка &2&l" + target.getName())));
+            if (target.hasUniversityData()) {
+                UniversityData data = target.getUniversityData();
+                Institute institute = Institute.of(data.getInstitute());
+                builder.append(Component.newline()).append(Component.newline()).append(Component.space())
+                        .append(Component.text(FormatUtils.colorize("&8| &7Головной институт: "))).append(Component.text(institute.getPrefix(), TextColor.fromHexString(institute.getColorScheme())))
+                        .append(Component.newline()).append(Component.space())
+                        .append(Component.text(FormatUtils.colorize("&8| &7Группа: &f" + data.getGroupName() + " &8(" + data.getGroupSuffix() + ")")));
+            }
+            if (target.hasStudentName()) {
+                builder.append(Component.newline()).append(Component.space())
+                        .append(Component.text(FormatUtils.colorize("&8| &7Имя: &f" + target.getStudentName())));
+            }
+            builder.append(Component.newline());
+            user.getPlayer().sendMessage(builder.build());
+        });
+    }
+
+    @Subcommand("group")
     @Syntax("<группа>")
+    @CommandCompletion("@mireaGroups")
     public void onGroupSubcommand(MireaUser<Player> user, String group) throws ExecutionException, InterruptedException {
         Player player = user.getPlayer();
-        CompletableFuture.supplyAsync(() -> {
-            try {
-                player.sendMessage(FormatUtils.colorize("&7&oОбрабатываем запрос..."));
-                HttpClientBuilder clientBuilder = HttpClients.custom();
-                clientBuilder.setDefaultHeaders(Arrays.asList(new BasicHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType())));
-                CloseableHttpClient httpClient = clientBuilder.build();
-                HttpGet httpGet = new HttpGet("https://mirea.xyz/api/v1.3/groups/certain?name=" + group.toUpperCase());
-                CloseableHttpResponse response = httpClient.execute(httpGet);
-                String jsonResponse = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8)).readLine();
-                response.close();
-                httpClient.close();
-                if (!jsonResponse.equals("[]")) {
-                    jsonResponse = jsonResponse.substring(1, jsonResponse.length() - 1);
-                    JsonObject course = JsonParser.parseString(jsonResponse).getAsJsonObject();
-                    return new UniversityData(
-                            course.get("unitName").getAsString(),
-                            course.get("groupName").getAsString(),
-                            course.get("groupSuffix").getAsString()
-                    );
+        if (!user.hasUniversityData() || !user.getUniversityData().getGroupName().equals(group.toUpperCase())) {
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    player.sendMessage(FormatUtils.colorize("&7&oОбрабатываем запрос..."));
+                    HttpClientBuilder clientBuilder = HttpClients.custom();
+                    clientBuilder.setDefaultHeaders(Arrays.asList(new BasicHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType())));
+                    CloseableHttpClient httpClient = clientBuilder.build();
+                    HttpGet httpGet = new HttpGet("https://mirea.xyz/api/v1.3/groups/certain?name=" + group.toUpperCase());
+                    CloseableHttpResponse response = httpClient.execute(httpGet);
+                    String jsonResponse = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8)).readLine();
+                    response.close();
+                    httpClient.close();
+                    if (!jsonResponse.equals("[]")) {
+                        jsonResponse = jsonResponse.substring(1, jsonResponse.length() - 1);
+                        JsonObject course = JsonParser.parseString(jsonResponse).getAsJsonObject();
+                        return new UniversityData(
+                                course.get("unitName").getAsString(),
+                                course.get("groupName").getAsString(),
+                                course.get("groupSuffix").getAsString()
+                        );
+                    }
+                    return null;
+                } catch (IOException | IllegalArgumentException e) {
+                    return null;
                 }
-                return null;
-            } catch (IOException | IllegalArgumentException e) {
-                e.printStackTrace();
-                return null;
-            }
-        }).thenAcceptAsync(universityData -> {
-            if (universityData != null) {
-                user.setUniversityData(universityData);
-                user.save(userManager);
-                player.sendMessage(FormatUtils.colorize(
-                        "&r\n&aВаша карточка студента: " +
-                                "\n&r\n &8| &7Институт: &e" + Institute.of(universityData.getInstitute()) +
-                                "\n &8| &7Группа: &f" + universityData.getGroupName() +
-                                "\n &8| &7Аббревиатура: &f" + universityData.getGroupSuffix() + "\n&r"));
-                scoreboard.updatePlayer(player);
-            } else player.sendMessage(FormatUtils.colorize("&cУказанная Вами группа не найдена!"));
-        }).get();
+            }).thenAcceptAsync(universityData -> {
+                if (universityData != null) {
+                    user.setUniversityData(universityData);
+                    user.save(userManager);
+                    player.sendMessage(FormatUtils.colorize(
+                            "&r\n&aИнформация о студенте: " +
+                                    "\n&r\n &8| &7Институт: &e" + Institute.of(universityData.getInstitute()) +
+                                    "\n &8| &7Группа: &f" + universityData.getGroupName() +
+                                    "\n &8| &7Аббревиатура: &f" + universityData.getGroupSuffix() + "\n&r"));
+                    scoreboard.updatePlayer(user);
+                } else player.sendMessage(FormatUtils.colorize("&cУказанная Вами группа не найдена!"));
+            }).get();
+        } else player.sendMessage(FormatUtils.colorize(String.format("&cВы уже состоите в группе &6%s&c!", group.toUpperCase())));
+    }
+
+    @Subcommand("name")
+    @Syntax("<имя> <фамилия> [отчество]")
+    public void onNameCommand(MireaUser<Player> user, String firstName, String lastName, @Optional String middleName) {
+        Player player = user.getPlayer();
+        StudentName studentName = null;
+        if (firstName != null && middleName != null && lastName != null ) {
+            studentName = new StudentName(firstName, middleName, lastName);
+        } else if (firstName != null && lastName != null) {
+            studentName = new StudentName(firstName, lastName);
+        }
+        if (studentName != null) {
+            player.sendMessage(FormatUtils.colorize("&aИмя успешно установлено: &e" + studentName));
+            user.setStudentName(studentName);
+            user.save(userManager);
+        } else player.sendMessage(FormatUtils.colorize("&cНужно обязательно указать фамилию и имя!"));
     }
 
     @HelpCommand
     public static void onHelp(CommandSender sender) {
-        sender.sendMessage(FormatUtils.colorize("&cИспользуйте: &6/card <группа/имя>"));
+        TextComponent component = Component.text()
+                .append(Component.newline()).append(Component.space())
+                .append(Component.text(FormatUtils.colorize("&8| &7Установить группу: &f/card group <группа>\n&8  прим. /card group БСБО-13-22")))
+                .append(Component.newline()).append(Component.newline())
+                .append(Component.space()).append(Component.text(FormatUtils.colorize("&8| &7Установить имя: &f/card name <Ф> <И> [О]\n&8  прим. /card name Иван Иванов Иванович")))
+                .append(Component.newline()).append(Component.newline())
+                .append(Component.space()).append(Component.text(FormatUtils.colorize("&8| &7Посмотреть карточу: &f/card profile [никйнем]")))
+                .append(Component.newline()).append(Component.space())
+                .build();
+        sender.sendMessage(component);
     }
 }

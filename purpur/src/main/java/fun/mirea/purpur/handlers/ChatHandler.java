@@ -1,11 +1,13 @@
 package fun.mirea.purpur.handlers;
 
 import fun.mirea.purpur.MireaModulePlugin;
+import fun.mirea.purpur.utility.ComponentUtils;
 import fun.mirea.purpur.utility.FormatUtils;
 import fun.mirea.common.user.university.Institute;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.university.UniversityData;
 import fun.mirea.common.user.UserManager;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.BuildableComponent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentBuilder;
@@ -29,7 +31,11 @@ import java.util.regex.Pattern;
 public class ChatHandler implements Listener {
 
     private static final Pattern mentionPattern = Pattern.compile("@[A-Za-z0-9_]{3,16}");
+
     private static final Pattern urlPattern = Pattern.compile("^(https?|http|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+
+    private static final Pattern resourcePackPattern = Pattern.compile("<rp[|].*>");
+
     private final UserManager<Player> userManager;
 
     public ChatHandler(UserManager<Player> userManager) {
@@ -37,76 +43,66 @@ public class ChatHandler implements Listener {
     }
 
     @EventHandler
-    public void onChatMessage(AsyncPlayerChatEvent event) throws ExecutionException {
+    public void onChatMessage(AsyncChatEvent event) throws ExecutionException {
         if (!event.isCancelled()) {
             event.setCancelled(true);
             Player player = event.getPlayer();
-            MireaUser<Player> user = userManager.getUserCache().get(player.getName());
-            Component formatComponent = getJsonFormat(user, event.getMessage());
-            Bukkit.getOnlinePlayers().forEach(online -> online.sendMessage(formatComponent));
-            MireaModulePlugin.getInstance().getLogger().info(String.format("%s отправил сообщение \"%s\"", player.getName(), event.getMessage()));
+            userManager.getUserCache().get(player.getName()).ifPresent(user -> {
+                TextComponent component = (TextComponent) event.originalMessage();
+                Component formatComponent = getJsonFormat(user, component.content());
+                Bukkit.getOnlinePlayers().forEach(online -> online.sendMessage(formatComponent));
+                Bukkit.getConsoleSender().sendMessage(formatComponent);
+            });
         }
     }
 
-    private BuildableComponent<TextComponent, TextComponent.Builder> getJsonFormat(MireaUser<Player> sender, String message) throws ExecutionException {
+    private BuildableComponent<TextComponent, TextComponent.Builder> getJsonFormat(MireaUser<Player> sender, String message) {
         ComponentBuilder<TextComponent, TextComponent.Builder> builder = Component.text();
-        UniversityData universityData = sender.getUniversityData();
         TextComponent timeComponent = Component.text(new SimpleDateFormat("[HH:mm] ").format(System.currentTimeMillis())).color(TextColor.color(85, 85, 85));
-        String chatPrefix = "";
-        String colorScheme = "#AAAAAA";
-        ComponentBuilder<TextComponent, TextComponent.Builder> prefixBuilder = Component.text();
-        if (universityData != null) {
-            Institute institute = Institute.of(sender.getUniversityData().getInstitute());
-            if (institute != null && institute != Institute.UNKNOWN) {
-                chatPrefix = institute.getPrefix() + " ";
-                colorScheme = institute.getColorScheme();
-            }
-            TextComponent hoverPrefixComponent = Component.text(FormatUtils.colorize("&7Институт: &f" + universityData.getInstitute()
-                    + "\n&7Группа: &f" + universityData.getGroupName() + " &8(" + universityData.getGroupSuffix() + ")"));
-            prefixBuilder.hoverEvent(HoverEvent.showText(hoverPrefixComponent));
-        }
-        prefixBuilder.append(Component.text(chatPrefix)).color(TextColor.fromHexString(colorScheme)).decorate(TextDecoration.BOLD);
-        TextComponent nameComponent = Component.text(sender.getName()).color(TextColor.fromHexString(colorScheme));
         TextComponent messageComponent = Component.text(": ").color(TextColor.fromHexString("#AAAAAA")).
                 toBuilder().append(parseMessage(ChatColor.translateAlternateColorCodes('&', message))).build();
-        return builder.append(timeComponent).append(prefixBuilder.build()).append(nameComponent).append(messageComponent).build();
+        return builder.append(timeComponent).append(ComponentUtils.createDisplayName(sender, true)).append(messageComponent).build();
     }
 
-    private BuildableComponent<TextComponent, TextComponent.Builder> parseMessage(String message) throws ExecutionException {
+    private BuildableComponent<TextComponent, TextComponent.Builder> parseMessage(String message) {
         ComponentBuilder<TextComponent, TextComponent.Builder> builder = Component.text();
-        Component partComponent = null;
         for (String part : message.split(" ")) {
+            ComponentBuilder<TextComponent, TextComponent.Builder> partBuilder = Component.text();
             Matcher urlMatcher = urlPattern.matcher(part);
             Matcher mentionMatcher = mentionPattern.matcher(part);
+            Matcher resourcePackMatcher = resourcePackPattern.matcher(part);
             if (urlMatcher.matches()) {
-                partComponent = Component.text(part)
+                builder.append(Component.text(part)
                         .color(TextColor.fromHexString("#ffffff"))
                         .decorate(TextDecoration.UNDERLINED)
                         .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, part))
-                        .hoverEvent(HoverEvent.showText(Component.text(FormatUtils.colorize("&e▶ Перейти по ссылке"))));
-                builder.append(partComponent);
-                partComponent = Component.empty().color(TextColor.fromHexString("#AAAAAA"));
+                        .hoverEvent(HoverEvent.showText(Component.text("▶ Перейти по ссылке", TextColor.fromHexString("#FFFF55")))));
             } else if (mentionMatcher.matches()) {
-                MireaUser<Player> mentioned = userManager.getUserCache().get(part.substring(1));
-                Institute institute =  mentioned.hasUniversityData() ? Institute.of(mentioned.getUniversityData().getInstitute()) : Institute.UNKNOWN;
-                partComponent = Component.text(part).color(TextColor.fromHexString(institute.getColorScheme()));
-                if (institute != Institute.UNKNOWN) {
-                    UniversityData universityData = mentioned.getUniversityData();
-                    partComponent = partComponent.hoverEvent(HoverEvent.showText(Component.text(FormatUtils.colorize("&7Институт: &f" + universityData.getInstitute()
-                            + "\n&7Группа: &f" + universityData.getGroupName() + " &8(" + universityData.getGroupSuffix() + ")"))));
+                try {
+                    userManager.getUserCache().get(part.substring(1)).ifPresentOrElse(mentioned -> {
+                        Institute institute =  mentioned.hasUniversityData() ? Institute.of(mentioned.getUniversityData().getInstitute()) : Institute.UNKNOWN;
+                        Component tagComponent = Component.text("@" + mentioned.getName()).color(TextColor.fromHexString(institute.getColorScheme()));
+                        if (institute != Institute.UNKNOWN) {
+                            UniversityData universityData = mentioned.getUniversityData();
+                            tagComponent = tagComponent.hoverEvent(HoverEvent.showText(Component.text(FormatUtils.colorize("&7Имя: &f" + mentioned.getStudentName() + "\n&7Институт: &f" + universityData.getInstitute()
+                                    + "\n&7Группа: &f" + universityData.getGroupName() + " &8(" + universityData.getGroupSuffix() + ")"))));
+                        }
+                        partBuilder.append(tagComponent);
+                    }, () -> partBuilder.append(Component.text(part)));
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
                 }
-                builder.append(partComponent);
-                partComponent = Component.empty().color(TextColor.fromHexString("#AAAAAA"));
-            } else {
-                if (partComponent != null)
-                    partComponent = Component.text(part)
-                            .color(partComponent.color())
-                            .style(partComponent.style())
-                            .decorations(partComponent.decorations());
-                else partComponent = Component.text(part);
-                builder.append(partComponent);
-            }
-            builder.append(Component.space());
+            } else if (resourcePackMatcher.matches()) {
+                String url = part.substring(1, part.length() - 1).split("\\|")[1];
+                if (urlPattern.matcher(url).matches()) {
+                    Component buttonComponent = Component.text("[РЕСУРСПАК]", TextColor.fromHexString("#DDD605"))
+                            .hoverEvent(HoverEvent.showText(Component.text("▶ Установить", TextColor.fromHexString("#DDD605"))))
+                            .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/resourcepack download " + url));
+                    partBuilder.append(buttonComponent);
+                } else partBuilder.append(Component.text(part));
+            } else partBuilder.append(Component.text(part));
+            partBuilder.append(Component.empty().color(TextColor.fromHexString("#AAAAAA")));
+            builder.append(partBuilder).append(Component.space());
         }
         return builder.build();
     }

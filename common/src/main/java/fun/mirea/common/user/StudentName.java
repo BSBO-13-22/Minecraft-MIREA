@@ -5,6 +5,8 @@ import lombok.Setter;
 
 public final class StudentName {
 
+    public static final StudentName NULL = new StudentName();
+
     @Getter
     @Setter
     private String firstName;
@@ -17,6 +19,11 @@ public final class StudentName {
     @Setter
     private String lastName;
 
+    private StudentName() {
+        this.firstName = "Не";
+        this.lastName = "указано";
+    }
+
     public StudentName(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -28,4 +35,12 @@ public final class StudentName {
         this.lastName = lastName;
     }
 
+    @Override
+    public String toString() {
+        if (firstName != null && middleName != null && lastName != null)
+            return firstName + " " + middleName + " " + lastName;
+        else if (firstName != null && lastName != null)
+            return firstName + " " + lastName;
+        else return "Не указано";
+    }
 }

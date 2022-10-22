@@ -25,42 +25,36 @@ public class UniversityScoreboard {
         this.userManager = userManager;
         this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         for (Institute institute : Institute.values()) {
-            Team team = scoreboard.registerNewTeam(!institute.getPrefix().isEmpty() ? institute.getPrefix() : "яunknown");
+            Team team = scoreboard.registerNewTeam(institute != Institute.UNKNOWN ? institute.getPrefix() : "яunknown");
             Component prefix = Component.text(institute.getPrefix() + " ").color(TextColor.fromHexString(institute.getColorScheme())).decorate(TextDecoration.BOLD);
             if (!institute.getPrefix().isEmpty()) team.prefix(prefix);
             team.color(NamedTextColor.GRAY);
         }
     }
 
-    public CompletableFuture<Void> addPlayer(Player player) {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                MireaUser<Player> user = userManager.getUserCache().get(player.getName());
-                Team team = scoreboard.getTeam("яunknown");
-                if (user.hasUniversityData()) {
-                    UniversityData universityData = user.getUniversityData();
-                    Institute institute = Institute.of(universityData.getInstitute());
-                    team = scoreboard.getTeam(institute.getPrefix());
-                }
-                if (team != null) team.addEntry(player.getName());
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-            player.setScoreboard(scoreboard);
-        });
-    }
-
-    public CompletableFuture<Void> removePlayer(Player player) {
-        return CompletableFuture.runAsync(() -> scoreboard.getTeams().forEach(team -> {
-            if (team.getEntries().contains(player.getName())) team.removeEntry(player.getName());
-        }));
-    }
-
-    public void updatePlayer(Player player) {
-        try {
-            removePlayer(player).complete(addPlayer(player).get());
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
+    public void addUser(MireaUser<Player> user) {
+        Player player = user.getPlayer();
+        player.setScoreboard(scoreboard);
+        Team team = scoreboard.getTeam("яunknown");
+        if (user.hasUniversityData()) {
+            UniversityData universityData = user.getUniversityData();
+            Institute institute = Institute.of(universityData.getInstitute());
+            if (institute != Institute.UNKNOWN)
+                team = scoreboard.getTeam(institute.getPrefix());
         }
+        if (team != null) team.addEntry(player.getName());
+        Bukkit.getOnlinePlayers().forEach(online -> online.setScoreboard(scoreboard));
+    }
+
+    public void removePlayer(Player player) {
+        scoreboard.getTeams().forEach(team -> {
+            if (team.getEntries().contains(player.getName())) team.removeEntry(player.getName());
+        });
+        Bukkit.getOnlinePlayers().forEach(online -> online.setScoreboard(scoreboard));
+    }
+
+    public void updatePlayer(MireaUser<Player> user) {
+        removePlayer(user.getPlayer());
+        addUser(user);
     }
 }
