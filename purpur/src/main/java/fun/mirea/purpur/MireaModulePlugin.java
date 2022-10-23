@@ -17,7 +17,6 @@ import fun.mirea.purpur.handlers.GuiHandler;
 import fun.mirea.purpur.handlers.PlayerHandler;
 import fun.mirea.purpur.messaging.PluginMessagingAdapter;
 import fun.mirea.purpur.scoreboard.UniversityScoreboard;
-import fun.mirea.common.multithreading.ThreadManager;
 import fun.mirea.common.user.UserManager;
 import fun.mirea.database.SqlDatabase;
 import lombok.Getter;
@@ -58,9 +57,6 @@ public class MireaModulePlugin extends JavaPlugin {
     private static File tempDirectory;
 
     @Getter
-    private static ThreadManager threadManager;
-
-    @Getter
     private static PaperCommandManager commandManager;
 
     @Getter
@@ -91,7 +87,6 @@ public class MireaModulePlugin extends JavaPlugin {
         commandManager = new PaperCommandManager(this);
         database = new SqlDatabase("jdbc:postgresql://" + configuration.getDbHost() + ":" + configuration.getDbPort() + "/" + configuration.getDbName(),
                 configuration.getDbUser(), configuration.getDbUserPassword(), false);
-        threadManager = new ThreadManager(Executors.newFixedThreadPool(16));
         guiManager = new GuiManager();
         userManager = new UserManager<>(Bukkit::getPlayerExact, database, new ConsoleLogger() {
             @Override

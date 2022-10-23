@@ -1,4 +1,4 @@
-package fun.mirea.velocity.http;
+package fun.mirea.common.network;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

@@ -12,10 +12,13 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
 import com.velocitypowered.api.util.GameProfile;
+import fun.mirea.common.network.MojangClient;
 import fun.mirea.common.server.Configuration;
 import fun.mirea.common.server.ConsoleLogger;
+import fun.mirea.common.server.MireaComponent;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.PlayerProvider;
 import fun.mirea.common.user.UserManager;
@@ -23,6 +26,8 @@ import fun.mirea.common.user.skin.SkinData;
 import fun.mirea.database.Database;
 import fun.mirea.database.SqlDatabase;
 import fun.mirea.velocity.command.SkinCommand;
+import fun.mirea.velocity.messaging.ChannelData;
+import fun.mirea.velocity.messaging.PluginMessage;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -31,9 +36,7 @@ import net.kyori.adventure.text.format.TextColor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -60,6 +63,8 @@ public class MireaModulePlugin {
     private final Logger logger;
     @Getter
     private final Path dataDirectory;
+
+    private MojangClient mojangClient;
 
     private static int registeredUsers = 0;
 
@@ -95,7 +100,8 @@ public class MireaModulePlugin {
                 }
         });
         commandManager = new VelocityCommandManager(proxyServer, this);
-        registerCommands(new SkinCommand(userManager, configuration.getMineSkinToken()));
+        mojangClient = new MojangClient();
+        registerCommands(new SkinCommand(userManager, configuration.getMineSkinToken(), mojangClient));
         runRegisteredUsersUpdater();
     }
 
@@ -168,9 +174,48 @@ public class MireaModulePlugin {
         userManager.getUserCache().get(player.getUsername()).ifPresent(user -> {
            if (user.hasSkinData()) {
                SkinData skinData = user.getSkinData();
-               GameProfile.Property skinProperty = new GameProfile.Property("textures", skinData.getValue(), skinData.getSignature());
-               event.getPlayer().setGameProfileProperties(Collections.singletonList(skinProperty));
+               if (!skinData.getSignature().isEmpty() && !skinData.getValue().isEmpty()) {
+                   GameProfile.Property skinProperty = new GameProfile.Property("textures", skinData.getValue(), skinData.getSignature());
+                   event.getPlayer().setGameProfileProperties(Collections.singletonList(skinProperty));
+               }
+           } else {
+               mojangClient.getLicenseId(player.getUsername()).thenAcceptAsync(optionalId -> {
+                   optionalId.ifPresentOrElse(uuid -> {
+                       mojangClient.getLicenseSkin(uuid).thenAcceptAsync(optionalSkin -> {
+                           optionalSkin.ifPresent(skinData -> {
+                               GameProfile.Property skinProperty = new GameProfile.Property("textures", skinData.getValue(), skinData.getSignature());
+                               event.getPlayer().setGameProfileProperties(Collections.singletonList(skinProperty));
+                               user.setSkinData(skinData);
+                               user.save(userManager);
+                               sendSkinMessages(user, user.getSkinData());
+                           });
+                       });
+                   }, () -> {
+                       user.setSkinData(new SkinData());
+                       sendSkinMessages(user, user.getSkinData());
+                   });
+               });
            }
         });
+    }
+
+    private void sendSkinMessages(MireaUser<Player> user, SkinData skinData) {
+        ChannelData channelData = new ChannelData("mirea", "user");
+        Collection<RegisteredServer> servers = MireaModulePlugin.getInstance().getProxyServer().getAllServers();
+        PluginMessage updateUserMessage = PluginMessage.builder()
+                .channelData(channelData)
+                .service("updateUser")
+                .player(user.getName())
+                .servers(servers)
+                .build();
+        updateUserMessage.send();
+        PluginMessage refreshSkinMessage = PluginMessage.builder()
+                .channelData(channelData)
+                .service("refreshSkin")
+                .player(user.getName())
+                .servers(servers)
+                .values(new LinkedList<>(Arrays.asList(skinData.getValue(), skinData.getSignature())))
+                .build();
+        refreshSkinMessage.send();
     }
 }

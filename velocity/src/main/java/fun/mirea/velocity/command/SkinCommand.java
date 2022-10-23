@@ -11,8 +11,8 @@ import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.UserManager;
 import fun.mirea.common.user.skin.SkinData;
 import fun.mirea.velocity.MireaModulePlugin;
-import fun.mirea.velocity.http.MineSkinClient;
-import fun.mirea.velocity.http.MojangClient;
+import fun.mirea.common.network.MineSkinClient;
+import fun.mirea.common.network.MojangClient;
 import fun.mirea.velocity.messaging.ChannelData;
 import fun.mirea.velocity.messaging.PluginMessage;
 
@@ -28,10 +28,10 @@ public class SkinCommand extends BaseCommand {
     private final UserManager<Player> userManager;
     private final MineSkinClient skinClient;
     private final MojangClient mojangClient;
-    public SkinCommand(UserManager<Player> userManager, String mineSkinToken) {
+    public SkinCommand(UserManager<Player> userManager, String mineSkinToken, MojangClient mojangClient) {
         this.userManager = userManager;
         this.skinClient = new MineSkinClient(mineSkinToken);
-        this.mojangClient = new MojangClient();
+        this.mojangClient = mojangClient;
     }
 
     @CommandAlias("skin")
@@ -53,7 +53,6 @@ public class SkinCommand extends BaseCommand {
                 mojangClient.getLicenseSkin(uuid).thenAcceptAsync(optionalSkin -> {
                     optionalSkin.ifPresentOrElse(skinData -> {
                         setUserSkin(sender, skinData);
-                        System.out.println(skinData.getValue() + "\n" + skinData.getSignature());
                     }, () -> sender.getPlayer().sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Не удалось обновить скин.")));
                 });
             }, () -> sender.getPlayer().sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Лицензионный аккаунт с таким именем не найден!")));

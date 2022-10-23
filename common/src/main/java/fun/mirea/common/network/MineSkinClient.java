@@ -1,4 +1,4 @@
-package fun.mirea.velocity.http;
+package fun.mirea.common.network;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -26,7 +26,7 @@ public class MineSkinClient {
 
     private final String apiToken;
     private final CloseableHttpClient client;
-    private RequestConfig config;
+    private final RequestConfig config;
 
     public MineSkinClient(String apiToken) {
         this.apiToken = apiToken;

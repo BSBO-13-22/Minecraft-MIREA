@@ -48,31 +48,31 @@ public class ChestGui implements InventoryGui {
                         case RIGHT -> {
                             Runnable runnable = events.getRightClickHandler();
                             if (runnable != null)
-                                CompletableFuture.runAsync(runnable, MireaModulePlugin.getThreadManager().getExecutorService());
+                                CompletableFuture.runAsync(runnable);
                         }
                         case SHIFT_LEFT -> {
                             Runnable runnable = events.getLeftShiftClickHandler();
                             if (runnable != null)
-                                CompletableFuture.runAsync(runnable, MireaModulePlugin.getThreadManager().getExecutorService());
+                                CompletableFuture.runAsync(runnable);
                         }
                         case SHIFT_RIGHT -> {
                             Runnable runnable = events.getRightShiftClickHandler();
                             if (runnable != null)
-                                CompletableFuture.runAsync(runnable, MireaModulePlugin.getThreadManager().getExecutorService());
+                                CompletableFuture.runAsync(runnable);
                         }
                         case MIDDLE -> {
                             Runnable runnable = events.getMiddleClickHandler();
                             if (runnable != null)
-                                CompletableFuture.runAsync(runnable, MireaModulePlugin.getThreadManager().getExecutorService());
+                                CompletableFuture.runAsync(runnable);
                         }
                         default -> {
                             Runnable runnable = events.getLeftClickHandler();
                             if (runnable != null)
-                                CompletableFuture.runAsync(runnable, MireaModulePlugin.getThreadManager().getExecutorService());
+                                CompletableFuture.runAsync(runnable);
                         }
                     }
                 }
             }
-        }, MireaModulePlugin.getThreadManager().getExecutorService());
+        });
     }
 }
