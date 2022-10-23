@@ -25,12 +25,16 @@ public class Configuration {
     @Getter
     private final String dbUserPassword;
 
-    public Configuration(String dbHost, int dbPort, String dbName, String dbUser, String dbUserPassword) {
+    @Getter
+    private final String mineSkinToken;
+
+    public Configuration(String dbHost, int dbPort, String dbName, String dbUser, String dbUserPassword, String mineSkinToken) {
         this.dbHost = dbHost;
         this.dbPort = dbPort;
         this.dbName = dbName;
         this.dbUser = dbUser;
         this.dbUserPassword = dbUserPassword;
+        this.mineSkinToken = mineSkinToken;
     }
 
     public CompletableFuture<Void> toFile(String path) {

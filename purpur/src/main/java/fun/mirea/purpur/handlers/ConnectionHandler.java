@@ -1,17 +1,14 @@
 package fun.mirea.purpur.handlers;
 
+import fun.mirea.common.server.MireaComponent;
 import fun.mirea.purpur.MireaModulePlugin;
 import fun.mirea.purpur.scoreboard.UniversityScoreboard;
 import fun.mirea.purpur.utility.ComponentUtils;
 import fun.mirea.purpur.utility.FormatUtils;
-import fun.mirea.common.user.university.Institute;
 import fun.mirea.common.user.MireaUser;
-import fun.mirea.common.user.university.UniversityData;
 import fun.mirea.common.user.UserManager;
-import net.kyori.adventure.text.BuildableComponent;
+import fun.mirea.purpur.utility.SkinApplier;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentBuilder;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.TextColor;
@@ -19,14 +16,10 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class ConnectionHandler implements Listener {
@@ -71,6 +64,10 @@ public class ConnectionHandler implements Listener {
         userManager.getUserCache().get(player.getName()).ifPresentOrElse(user -> {
             event.joinMessage(getConnectionMessage(user, true));
             universityScoreboard.addUser(user);
+            if (user.hasSkinData()) {
+                SkinApplier skinApplier = new SkinApplier(user.getPlayer());
+                skinApplier.process(user.getSkinData());
+            }
         }, () -> {
             MireaUser<Player> user = new MireaUser<>(player.getName());
             user.setProvider(userManager.getProvider());

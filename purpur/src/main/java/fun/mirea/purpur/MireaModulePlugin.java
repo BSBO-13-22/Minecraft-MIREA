@@ -15,6 +15,7 @@ import fun.mirea.purpur.handlers.ChatHandler;
 import fun.mirea.purpur.handlers.ConnectionHandler;
 import fun.mirea.purpur.handlers.GuiHandler;
 import fun.mirea.purpur.handlers.PlayerHandler;
+import fun.mirea.purpur.messaging.PluginMessagingAdapter;
 import fun.mirea.purpur.scoreboard.UniversityScoreboard;
 import fun.mirea.common.multithreading.ThreadManager;
 import fun.mirea.common.user.UserManager;
@@ -82,6 +83,7 @@ public class MireaModulePlugin extends JavaPlugin {
                 new ResourcePackCommand(),
                 new SqlCommands(database));
         registerHandlers(new ChatHandler(userManager), new ConnectionHandler(userManager, universityScoreboard), new GuiHandler(guiManager), new PlayerHandler());
+        registerMessagingAdapter("mirea:user");
     }
 
     private void init() {
@@ -119,7 +121,7 @@ public class MireaModulePlugin extends JavaPlugin {
         File configFile = new File(dataFolder + File.separator + "config.toml");
         if (!configFile.exists()) {
             try {
-                configuration = new Configuration("localhost", 5432, "mirea", "postgres", "admin");
+                configuration = new Configuration("localhost", 5432, "mirea", "postgres", "admin", "<insert_token_here>");
                 if (configFile.createNewFile()) configuration.toFile(configFile.getPath()).get();
             } catch (IOException | ExecutionException | InterruptedException e) {
                 e.printStackTrace();
@@ -182,6 +184,11 @@ public class MireaModulePlugin extends JavaPlugin {
 
     private void registerHandlers(Listener... listeners) {
         for (Listener listener : listeners) getServer().getPluginManager().registerEvents(listener, this);
+    }
+
+    private void registerMessagingAdapter(String... channels){
+        PluginMessagingAdapter adapter = new PluginMessagingAdapter(this, userManager);
+        for (String channel : channels) adapter.registerChannel(channel);
     }
 
 }

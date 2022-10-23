@@ -1,8 +1,11 @@
 package fun.mirea.velocity;
 
+import co.aikar.commands.BaseCommand;
+import co.aikar.commands.VelocityCommandManager;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyPingEvent;
 import com.velocitypowered.api.plugin.Plugin;
@@ -10,12 +13,16 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
+import com.velocitypowered.api.util.GameProfile;
 import fun.mirea.common.server.Configuration;
 import fun.mirea.common.server.ConsoleLogger;
+import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.PlayerProvider;
 import fun.mirea.common.user.UserManager;
+import fun.mirea.common.user.skin.SkinData;
 import fun.mirea.database.Database;
 import fun.mirea.database.SqlDatabase;
+import fun.mirea.velocity.command.SkinCommand;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -24,6 +31,8 @@ import net.kyori.adventure.text.format.TextColor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +51,9 @@ public class MireaModulePlugin {
     private static Database database;
     @Getter
     private static UserManager<Player> userManager;
+
+    @Getter
+    private static VelocityCommandManager commandManager;
     @Getter
     private final ProxyServer proxyServer;
     @Getter
@@ -56,37 +68,6 @@ public class MireaModulePlugin {
         this.proxyServer = proxyServer;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
-    }
-
-    private void createFiles() {
-        File dataFolder = dataDirectory.toFile();
-        if (!dataFolder.exists())
-            dataFolder.mkdir();
-        File configFile = new File(dataFolder + File.separator + "config.toml");
-        if (!configFile.exists()) {
-            try {
-                configuration = new Configuration("localhost", 5432, "mirea", "postgres", "admin");
-                if (configFile.createNewFile()) configuration.toFile(configFile.getPath()).get();
-            } catch (IOException | ExecutionException | InterruptedException e) {
-                e.printStackTrace();
-            }
-        } else {
-            try {
-                configuration = Configuration.fromFile(configFile).get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void runRegisteredUsersUpdater() {
-        proxyServer.getScheduler().buildTask(this, () -> {
-            try {
-                registeredUsers = userManager.getTotalUsersCount().get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }).repeat(10, TimeUnit.SECONDS).schedule();
     }
 
     @Subscribe
@@ -113,7 +94,54 @@ public class MireaModulePlugin {
                     getLogger().severe(error);
                 }
         });
+        commandManager = new VelocityCommandManager(proxyServer, this);
+        registerCommands(new SkinCommand(userManager, configuration.getMineSkinToken()));
         runRegisteredUsersUpdater();
+    }
+
+    private void createFiles() {
+        File dataFolder = dataDirectory.toFile();
+        if (!dataFolder.exists())
+            dataFolder.mkdir();
+        File configFile = new File(dataFolder + File.separator + "config.toml");
+        if (!configFile.exists()) {
+            try {
+                configuration = new Configuration("localhost", 5432, "mirea", "postgres", "admin",  "<insert_token_here>");
+                if (configFile.createNewFile()) configuration.toFile(configFile.getPath()).get();
+            } catch (IOException | ExecutionException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                configuration = Configuration.fromFile(configFile).get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void registerCommands(BaseCommand... commands) {
+        commandManager.getCommandContexts().registerIssuerAwareContext(MireaUser.class, context -> {
+            try {
+                Optional<MireaUser<Player>> optional = userManager.getUserCache().get(context.getIssuer().getPlayer().getUsername());
+                if (optional.isPresent())
+                    return optional.get();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+        for (BaseCommand command : commands) commandManager.registerCommand(command);
+    }
+
+    private void runRegisteredUsersUpdater() {
+        proxyServer.getScheduler().buildTask(this, () -> {
+            try {
+                registeredUsers = userManager.getTotalUsersCount().get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }).repeat(10, TimeUnit.SECONDS).schedule();
     }
 
     @Subscribe(order = PostOrder.EARLY)
@@ -134,4 +162,15 @@ public class MireaModulePlugin {
         event.setPing(serverPing);
     }
 
+    @Subscribe
+    public void onLogin(LoginEvent event) throws ExecutionException {
+        Player player = event.getPlayer();
+        userManager.getUserCache().get(player.getUsername()).ifPresent(user -> {
+           if (user.hasSkinData()) {
+               SkinData skinData = user.getSkinData();
+               GameProfile.Property skinProperty = new GameProfile.Property("textures", skinData.getValue(), skinData.getSignature());
+               event.getPlayer().setGameProfileProperties(Collections.singletonList(skinProperty));
+           }
+        });
+    }
 }

@@ -5,6 +5,7 @@ import co.aikar.commands.annotation.*;
 import co.aikar.commands.annotation.HelpCommand;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import fun.mirea.common.server.MireaComponent;
 import fun.mirea.common.user.StudentName;
 import fun.mirea.purpur.scoreboard.UniversityScoreboard;
 import fun.mirea.purpur.utility.FormatUtils;
@@ -80,7 +81,7 @@ public class ProfileCommands extends BaseCommand {
         if (!user.hasUniversityData() || !user.getUniversityData().getGroupName().equals(group.toUpperCase())) {
             CompletableFuture.supplyAsync(() -> {
                 try {
-                    player.sendMessage(FormatUtils.colorize("&7&oОбрабатываем запрос..."));
+                    player.sendMessage(new MireaComponent(MireaComponent.Type.INFO,"Обрабатываем запрос..."));
                     HttpClientBuilder clientBuilder = HttpClients.custom();
                     clientBuilder.setDefaultHeaders(Arrays.asList(new BasicHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType())));
                     CloseableHttpClient httpClient = clientBuilder.build();
@@ -112,9 +113,10 @@ public class ProfileCommands extends BaseCommand {
                                     "\n &8| &7Группа: &f" + universityData.getGroupName() +
                                     "\n &8| &7Аббревиатура: &f" + universityData.getGroupSuffix() + "\n&r"));
                     scoreboard.updatePlayer(user);
-                } else player.sendMessage(FormatUtils.colorize("&cУказанная Вами группа не найдена!"));
+                } else player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Не удалось найти указанную группу!"));
             }).get();
-        } else player.sendMessage(FormatUtils.colorize(String.format("&cВы уже состоите в группе &6%s&c!", group.toUpperCase())));
+        } else  player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Вы уже состоите в группе {group}&с!",
+                new MireaComponent.Placeholder("group", group.toUpperCase())));
     }
 
     @Subcommand("name")
@@ -128,10 +130,11 @@ public class ProfileCommands extends BaseCommand {
             studentName = new StudentName(firstName, lastName);
         }
         if (studentName != null) {
-            player.sendMessage(FormatUtils.colorize("&aИмя успешно установлено: &e" + studentName));
+            player.sendMessage(new MireaComponent(MireaComponent.Type.SUCCESS, "Имя успешно установлено: &e{name}",
+                    new MireaComponent.Placeholder("name", studentName)));
             user.setStudentName(studentName);
             user.save(userManager);
-        } else player.sendMessage(FormatUtils.colorize("&cНужно обязательно указать фамилию и имя!"));
+        } else player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Нужно обязательно указать фамилию и имя!"));
     }
 
     @HelpCommand

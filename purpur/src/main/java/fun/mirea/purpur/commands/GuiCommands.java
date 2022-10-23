@@ -7,6 +7,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import fun.mirea.common.server.MireaComponent;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.UserManager;
 import fun.mirea.common.user.university.UniversityData;
@@ -54,12 +55,13 @@ public class GuiCommands extends BaseCommand {
     public void onScheduleCommand(MireaUser<Player> user) {
         Player player = user.getPlayer();
         if (user.hasUniversityData()) {
-            player.sendActionBar(Component.text(FormatUtils.colorize("&e&oПожалуйста, подождите...")));
+            player.sendActionBar(Component.text(FormatUtils.colorize("&7&oПожалуйста, подождите...")));
             UniversityData data = user.getUniversityData();
             getGroupSchedule(data.getGroupName()).thenCombineAsync(getCurrentWeek(), (jsonObject, currentWeek) -> {
                 try {
                     ChestGui chestGui = new ChestGui(data.getGroupName() + " | Неделя " + currentWeek, 1);
                     chestGui.open(player);
+                    player.sendActionBar(Component.empty());
                     JsonArray schedule = jsonObject.get("schedule").getAsJsonArray();
                     int i = 0;
                     for (JsonElement day : schedule) {
@@ -97,7 +99,7 @@ public class GuiCommands extends BaseCommand {
                 }
                 return null;
             });
-        } else player.sendMessage(Component.text("§cДля начала укажите свою группу! Используйте: §6/setgroup <группа> &8(Прим. БСБО-13-22)"));
+        } else player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Для начала укажите свою группу! Используйте: §6/card group <группа> &8(Прим. БСБО-13-22)"));
     }
 
     private CompletableFuture<JsonObject> getGroupSchedule(String groupName) {

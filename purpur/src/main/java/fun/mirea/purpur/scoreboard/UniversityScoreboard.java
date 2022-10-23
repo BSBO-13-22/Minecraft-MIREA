@@ -43,14 +43,12 @@ public class UniversityScoreboard {
                 team = scoreboard.getTeam(institute.getPrefix());
         }
         if (team != null) team.addEntry(player.getName());
-        Bukkit.getOnlinePlayers().forEach(online -> online.setScoreboard(scoreboard));
     }
 
     public void removePlayer(Player player) {
         scoreboard.getTeams().forEach(team -> {
             if (team.getEntries().contains(player.getName())) team.removeEntry(player.getName());
         });
-        Bukkit.getOnlinePlayers().forEach(online -> online.setScoreboard(scoreboard));
     }
 
     public void updatePlayer(MireaUser<Player> user) {

@@ -117,14 +117,16 @@ public final class UserManager<T> {
         };
     }
 
-    void updateUser(MireaUser<T> user) {
-        try {
-            ExecutionResult<Void> result =  database.execute(String.format("UPDATE users SET data = '%s' WHERE name = '%s'", gson.toJson(user), user.getName())).get();
-            if (result.state() == ExecutionState.SUCCESS)
-                logger.log("Successfully updated data for " + user.getName());
-            else logger.error(result.stackTrace());
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
+    CompletableFuture<Void> updateUser(MireaUser<T> user) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                ExecutionResult<Void> result =  database.execute(String.format("UPDATE users SET data = '%s' WHERE name = '%s'", gson.toJson(user), user.getName())).get();
+                if (result.state() == ExecutionState.SUCCESS)
+                    logger.log("Successfully updated data for " + user.getName());
+                else logger.error(result.stackTrace());
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        });
     }
 }

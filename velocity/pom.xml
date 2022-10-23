@@ -26,6 +26,10 @@
             <id>elytrium-repo</id>
             <url>https://maven.elytrium.net/repo/</url>
         </repository>
+        <repository>
+            <id>aikar</id>
+            <url>https://repo.aikar.co/content/groups/aikar/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -40,6 +44,11 @@
             <artifactId>limboapi-api</artifactId>
             <version>1.0.6</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>co.aikar</groupId>
+            <artifactId>acf-velocity</artifactId>
+            <version>LATEST</version>
         </dependency>
     </dependencies>
 

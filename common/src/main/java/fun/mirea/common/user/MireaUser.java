@@ -1,10 +1,12 @@
 package fun.mirea.common.user;
 
+import fun.mirea.common.user.skin.SkinData;
 import fun.mirea.common.user.university.UniversityData;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class MireaUser<T> {
 
@@ -18,6 +20,10 @@ public class MireaUser<T> {
     @Getter
     @Setter
     private StudentName studentName;
+
+    @Getter
+    @Setter
+    private SkinData skinData;
 
     @Setter
     private transient PlayerProvider<T> provider;
@@ -40,6 +46,10 @@ public class MireaUser<T> {
         return studentName != null;
     }
 
+    public boolean hasSkinData() {
+        return skinData != null;
+    }
+
     public void create(UserManager<T> userManager) {
         userManager.createUser(this);
     }
@@ -47,5 +57,4 @@ public class MireaUser<T> {
     public void save(UserManager<T> userManager) {
         userManager.updateUser(this);
     }
-
 }

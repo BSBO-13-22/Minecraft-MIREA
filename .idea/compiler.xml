@@ -13,5 +13,8 @@
         <module name="purpur" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="nms" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>

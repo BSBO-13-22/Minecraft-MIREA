@@ -1,6 +1,6 @@
 package fun.mirea.purpur.handlers;
 
-import fun.mirea.purpur.MireaModulePlugin;
+import fun.mirea.common.string.Patterns;
 import fun.mirea.purpur.utility.ComponentUtils;
 import fun.mirea.purpur.utility.FormatUtils;
 import fun.mirea.common.user.university.Institute;
@@ -21,7 +21,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import java.text.SimpleDateFormat;
 import java.util.concurrent.ExecutionException;
@@ -29,10 +28,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ChatHandler implements Listener {
-
-    private static final Pattern mentionPattern = Pattern.compile("@[A-Za-z0-9_]{3,16}");
-
-    private static final Pattern urlPattern = Pattern.compile("^(https?|http|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
 
     private static final Pattern resourcePackPattern = Pattern.compile("<rp[|].*>");
 
@@ -68,8 +63,8 @@ public class ChatHandler implements Listener {
         ComponentBuilder<TextComponent, TextComponent.Builder> builder = Component.text();
         for (String part : message.split(" ")) {
             ComponentBuilder<TextComponent, TextComponent.Builder> partBuilder = Component.text();
-            Matcher urlMatcher = urlPattern.matcher(part);
-            Matcher mentionMatcher = mentionPattern.matcher(part);
+            Matcher urlMatcher = Patterns.URL.matcher(part);
+            Matcher mentionMatcher = Patterns.MENTION.matcher(part);
             Matcher resourcePackMatcher = resourcePackPattern.matcher(part);
             if (urlMatcher.matches()) {
                 builder.append(Component.text(part)
@@ -94,7 +89,7 @@ public class ChatHandler implements Listener {
                 }
             } else if (resourcePackMatcher.matches()) {
                 String url = part.substring(1, part.length() - 1).split("\\|")[1];
-                if (urlPattern.matcher(url).matches()) {
+                if (Patterns.URL.matcher(url).matches()) {
                     Component buttonComponent = Component.text("[РЕСУРСПАК]", TextColor.fromHexString("#DDD605"))
                             .hoverEvent(HoverEvent.showText(Component.text("▶ Установить", TextColor.fromHexString("#DDD605"))))
                             .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/resourcepack download " + url));
