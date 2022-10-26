@@ -5,9 +5,6 @@ import fun.mirea.common.user.university.UniversityData;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
 public class MireaUser<T> {
 
     @Getter

@@ -2,25 +2,20 @@ package fun.mirea.purpur.commands;
 
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
-import co.aikar.commands.annotation.Syntax;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import fun.mirea.common.server.MireaComponent;
+import fun.mirea.common.format.MireaComponent;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.UserManager;
 import fun.mirea.common.user.university.UniversityData;
-import fun.mirea.purpur.MireaModulePlugin;
 import fun.mirea.purpur.gui.ChestGui;
-import fun.mirea.purpur.gui.ClickEvents;
 import fun.mirea.purpur.gui.GuiManager;
 import fun.mirea.purpur.gui.GuiSlot;
-import fun.mirea.purpur.utility.FormatUtils;
+import fun.mirea.common.format.FormatUtils;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.ContentType;
@@ -28,7 +23,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
@@ -55,7 +49,7 @@ public class GuiCommands extends BaseCommand {
     public void onScheduleCommand(MireaUser<Player> user) {
         Player player = user.getPlayer();
         if (user.hasUniversityData()) {
-            player.sendActionBar(Component.text(FormatUtils.colorize("&7&oПожалуйста, подождите...")));
+            player.sendActionBar(FormatUtils.colorize("&7&oПожалуйста, подождите..."));
             UniversityData data = user.getUniversityData();
             getGroupSchedule(data.getGroupName()).thenCombineAsync(getCurrentWeek(), (jsonObject, currentWeek) -> {
                 try {

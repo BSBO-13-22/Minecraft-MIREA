@@ -33,8 +33,8 @@ public class PluginMessagingAdapter implements PluginMessageListener {
             switch (subChannel) {
                 case "updateUser" -> {
                     String name = in.readUTF();
-                    userManager.getUserCache().asMap().remove(name);
-                    userManager.getUserCache().refresh(name);
+                    userManager.getCache().asMap().remove(name);
+                    userManager.getCache().refresh(name);
                 }
                 case "refreshSkin" -> {
                     String name = in.readUTF();

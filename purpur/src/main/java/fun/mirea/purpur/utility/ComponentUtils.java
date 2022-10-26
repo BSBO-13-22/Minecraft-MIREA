@@ -1,5 +1,6 @@
 package fun.mirea.purpur.utility;
 
+import fun.mirea.common.format.FormatUtils;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.university.Institute;
 import fun.mirea.common.user.university.UniversityData;
@@ -19,8 +20,8 @@ public class ComponentUtils {
             Institute institute = Institute.of(data.getInstitute());
             prefixBuilder.append(Component.text(institute.getPrefix(), TextColor.fromHexString(institute.getColorScheme())).decorate(TextDecoration.BOLD));
             if (hoverEvents) {
-                TextComponent hoverPrefixComponent = Component.text(FormatUtils.colorize("&7Институт: &f" + data.getInstitute()
-                        + "\n&7Группа: &f" + data.getGroupName() + " &8(" + data.getGroupSuffix() + ")"));
+                Component hoverPrefixComponent = FormatUtils.colorize("&7Институт: &f" + data.getInstitute()
+                        + "\n&7Группа: &f" + data.getGroupName() + " &8(" + data.getGroupSuffix() + ")");
                 prefixBuilder.hoverEvent(HoverEvent.showText(hoverPrefixComponent));
             }
         } else prefixBuilder.append(Component.empty().color(TextColor.fromHexString(Institute.UNKNOWN.getColorScheme())));

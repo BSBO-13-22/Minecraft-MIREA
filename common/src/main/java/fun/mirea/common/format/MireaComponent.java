@@ -1,4 +1,4 @@
-package fun.mirea.common.server;
+package fun.mirea.common.format;
 
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
@@ -63,8 +63,6 @@ public class MireaComponent implements TextComponent {
         return component.children(children);
     }
 
-
-
     @Override
     public @NotNull Style style() {
         return component.style();
@@ -73,19 +71,6 @@ public class MireaComponent implements TextComponent {
     @Override
     public @NotNull TextComponent style(@NotNull Style style) {
         return component.style(style);
-    }
-
-    public static class Placeholder {
-
-        @Getter
-        private final String tag;
-        @Getter
-        private final Object value;
-
-        public Placeholder(String tag, Object value) {
-            this.tag = tag;
-            this.value = value;
-        }
     }
 
     public enum Type {
@@ -101,4 +86,5 @@ public class MireaComponent implements TextComponent {
             this.color = TextColor.fromHexString(colorScheme);
         }
     }
+
 }

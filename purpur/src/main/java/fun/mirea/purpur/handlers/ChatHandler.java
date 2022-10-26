@@ -1,8 +1,8 @@
 package fun.mirea.purpur.handlers;
 
-import fun.mirea.common.string.Patterns;
+import fun.mirea.common.format.Patterns;
 import fun.mirea.purpur.utility.ComponentUtils;
-import fun.mirea.purpur.utility.FormatUtils;
+import fun.mirea.common.format.FormatUtils;
 import fun.mirea.common.user.university.Institute;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.university.UniversityData;
@@ -42,7 +42,7 @@ public class ChatHandler implements Listener {
         if (!event.isCancelled()) {
             event.setCancelled(true);
             Player player = event.getPlayer();
-            userManager.getUserCache().get(player.getName()).ifPresent(user -> {
+            userManager.getCache().get(player.getName()).ifPresent(user -> {
                 TextComponent component = (TextComponent) event.originalMessage();
                 Component formatComponent = getJsonFormat(user, component.content());
                 Bukkit.getOnlinePlayers().forEach(online -> online.sendMessage(formatComponent));
@@ -74,13 +74,13 @@ public class ChatHandler implements Listener {
                         .hoverEvent(HoverEvent.showText(Component.text("▶ Перейти по ссылке", TextColor.fromHexString("#FFFF55")))));
             } else if (mentionMatcher.matches()) {
                 try {
-                    userManager.getUserCache().get(part.substring(1)).ifPresentOrElse(mentioned -> {
+                    userManager.getCache().get(part.substring(1)).ifPresentOrElse(mentioned -> {
                         Institute institute =  mentioned.hasUniversityData() ? Institute.of(mentioned.getUniversityData().getInstitute()) : Institute.UNKNOWN;
                         Component tagComponent = Component.text("@" + mentioned.getName()).color(TextColor.fromHexString(institute.getColorScheme()));
                         if (institute != Institute.UNKNOWN) {
                             UniversityData universityData = mentioned.getUniversityData();
-                            tagComponent = tagComponent.hoverEvent(HoverEvent.showText(Component.text(FormatUtils.colorize("&7Имя: &f" + mentioned.getStudentName() + "\n&7Институт: &f" + universityData.getInstitute()
-                                    + "\n&7Группа: &f" + universityData.getGroupName() + " &8(" + universityData.getGroupSuffix() + ")"))));
+                            tagComponent = tagComponent.hoverEvent(HoverEvent.showText(FormatUtils.colorize("&7Имя: &f" + mentioned.getStudentName() + "\n&7Институт: &f" + universityData.getInstitute()
+                                    + "\n&7Группа: &f" + universityData.getGroupName() + " &8(" + universityData.getGroupSuffix() + ")")));
                         }
                         partBuilder.append(tagComponent);
                     }, () -> partBuilder.append(Component.text(part)));

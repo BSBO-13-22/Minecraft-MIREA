@@ -5,10 +5,11 @@ import co.aikar.commands.annotation.*;
 import co.aikar.commands.annotation.HelpCommand;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import fun.mirea.common.server.MireaComponent;
+import fun.mirea.common.format.MireaComponent;
+import fun.mirea.common.format.Placeholder;
 import fun.mirea.common.user.StudentName;
 import fun.mirea.purpur.scoreboard.UniversityScoreboard;
-import fun.mirea.purpur.utility.FormatUtils;
+import fun.mirea.common.format.FormatUtils;
 import fun.mirea.common.user.university.Institute;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.university.UniversityData;
@@ -53,20 +54,22 @@ public class ProfileCommands extends BaseCommand {
     public void onProfileSubcommand(MireaUser<Player> user, String nickname) throws ExecutionException {
         if (nickname == null)
             nickname = user.getName();
-        userManager.getUserCache().get(nickname).ifPresent(target -> {
+        userManager.getCache().get(nickname).ifPresent(target -> {
             ComponentBuilder<TextComponent, TextComponent.Builder> builder = Component.text().append(Component.newline())
-                    .append(Component.text(FormatUtils.colorize("&a&l Карточка &2&l" + target.getName())));
+                    .append(FormatUtils.colorize("&a&lКарточка &2&l" + target.getName()));
             if (target.hasUniversityData()) {
                 UniversityData data = target.getUniversityData();
                 Institute institute = Institute.of(data.getInstitute());
                 builder.append(Component.newline()).append(Component.newline()).append(Component.space())
-                        .append(Component.text(FormatUtils.colorize("&8| &7Головной институт: "))).append(Component.text(institute.getPrefix(), TextColor.fromHexString(institute.getColorScheme())))
+                        .append(FormatUtils.colorize("&8| &7Головной институт:"))
+                        .append(Component.space())
+                        .append(Component.text(institute.getPrefix(), TextColor.fromHexString(institute.getColorScheme())))
                         .append(Component.newline()).append(Component.space())
-                        .append(Component.text(FormatUtils.colorize("&8| &7Группа: &f" + data.getGroupName() + " &8(" + data.getGroupSuffix() + ")")));
+                        .append(FormatUtils.colorize("&8| &7Группа: &f" + data.getGroupName() + " &8(" + data.getGroupSuffix() + ")"));
             }
             if (target.hasStudentName()) {
                 builder.append(Component.newline()).append(Component.space())
-                        .append(Component.text(FormatUtils.colorize("&8| &7Имя: &f" + target.getStudentName())));
+                        .append(FormatUtils.colorize("&8| &7Имя: &f" + target.getStudentName()));
             }
             builder.append(Component.newline());
             user.getPlayer().sendMessage(builder.build());
@@ -109,14 +112,14 @@ public class ProfileCommands extends BaseCommand {
                     user.save(userManager);
                     player.sendMessage(FormatUtils.colorize(
                             "&r\n&aИнформация о студенте: " +
-                                    "\n&r\n &8| &7Институт: &e" + Institute.of(universityData.getInstitute()) +
+                                    "\n&r\n &8| &7Институт: " + Institute.of(universityData.getInstitute()) +
                                     "\n &8| &7Группа: &f" + universityData.getGroupName() +
                                     "\n &8| &7Аббревиатура: &f" + universityData.getGroupSuffix() + "\n&r"));
                     scoreboard.updatePlayer(user);
                 } else player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Не удалось найти указанную группу!"));
             }).get();
         } else  player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Вы уже состоите в группе {group}&с!",
-                new MireaComponent.Placeholder("group", group.toUpperCase())));
+                new Placeholder("group", group.toUpperCase())));
     }
 
     @Subcommand("name")
@@ -131,7 +134,7 @@ public class ProfileCommands extends BaseCommand {
         }
         if (studentName != null) {
             player.sendMessage(new MireaComponent(MireaComponent.Type.SUCCESS, "Имя успешно установлено: &e{name}",
-                    new MireaComponent.Placeholder("name", studentName)));
+                    new Placeholder("name", studentName)));
             user.setStudentName(studentName);
             user.save(userManager);
         } else player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Нужно обязательно указать фамилию и имя!"));
@@ -141,11 +144,11 @@ public class ProfileCommands extends BaseCommand {
     public static void onHelp(CommandSender sender) {
         TextComponent component = Component.text()
                 .append(Component.newline()).append(Component.space())
-                .append(Component.text(FormatUtils.colorize("&8| &7Установить группу: &f/card group <группа>\n&8  прим. /card group БСБО-13-22")))
+                .append(FormatUtils.colorize("&8| &7Установить группу: &f/card group <группа>\n&8  прим. /card group БСБО-13-22"))
                 .append(Component.newline()).append(Component.newline())
-                .append(Component.space()).append(Component.text(FormatUtils.colorize("&8| &7Установить имя: &f/card name <Ф> <И> [О]\n&8  прим. /card name Иван Иванов Иванович")))
+                .append(Component.space()).append(FormatUtils.colorize("&8| &7Установить имя: &f/card name <Ф> <И> [О]\n&8  прим. /card name Иван Иванов Иванович"))
                 .append(Component.newline()).append(Component.newline())
-                .append(Component.space()).append(Component.text(FormatUtils.colorize("&8| &7Посмотреть карточу: &f/card profile [никйнем]")))
+                .append(Component.space()).append(FormatUtils.colorize("&8| &7Посмотреть карточу: &f/card profile [никйнем]"))
                 .append(Component.newline()).append(Component.space())
                 .build();
         sender.sendMessage(component);

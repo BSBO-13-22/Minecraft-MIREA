@@ -1,12 +1,12 @@
-package fun.mirea.velocity.command;
+package fun.mirea.velocity.commands;
 
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.util.GameProfile;
-import fun.mirea.common.server.MireaComponent;
-import fun.mirea.common.string.Patterns;
+import fun.mirea.common.format.MireaComponent;
+import fun.mirea.common.format.Patterns;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.UserManager;
 import fun.mirea.common.user.skin.SkinData;

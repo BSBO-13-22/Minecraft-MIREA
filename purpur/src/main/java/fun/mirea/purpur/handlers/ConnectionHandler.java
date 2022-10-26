@@ -1,10 +1,9 @@
 package fun.mirea.purpur.handlers;
 
-import fun.mirea.common.server.MireaComponent;
 import fun.mirea.purpur.MireaModulePlugin;
 import fun.mirea.purpur.scoreboard.UniversityScoreboard;
 import fun.mirea.purpur.utility.ComponentUtils;
-import fun.mirea.purpur.utility.FormatUtils;
+import fun.mirea.common.format.FormatUtils;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.UserManager;
 import fun.mirea.purpur.utility.SkinApplier;
@@ -31,19 +30,19 @@ public class ConnectionHandler implements Listener {
             .append(Component.newline()).append(Component.space())
             .append(Component.text("Добро пожаловать!", TextColor.fromHexString("#196bb1")).decorate(TextDecoration.BOLD))
             .append(Component.newline()).append(Component.newline()).append(Component.space())
-            .append(Component.text(FormatUtils.colorize("&8● &fГлавное меню сервера:"))
+            .append(FormatUtils.colorize("&8● &fГлавное меню сервера:")
                     .append(Component.space())
                     .append(Component.text("/menu", TextColor.fromHexString("#fba71b"))
                     .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/menu"))
                     .hoverEvent(HoverEvent.showText(Component.text("▶ Использовать", TextColor.fromHexString("#FFFF55"))))))
             .append(Component.newline()).append(Component.space())
-            .append(Component.text(FormatUtils.colorize("&8● &fКарточка студента:"))
+            .append(FormatUtils.colorize("&8● &fКарточка студента:")
                     .append(Component.space())
                     .append(Component.text("/card help", TextColor.fromHexString("#fba71b"))
                     .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/card help"))
                     .hoverEvent(HoverEvent.showText(Component.text("▶ Использовать", TextColor.fromHexString("#FFFF55"))))))
             .append(Component.newline()).append(Component.space())
-            .append(Component.text(FormatUtils.colorize("&8● &fОнлайн крата:"))
+            .append(FormatUtils.colorize("&8● &fОнлайн крата:")
                     .append(Component.space())
                     .append(Component.text("map.mirea.fun", TextColor.fromHexString("#fba71b"))
                     .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, "https://map.mirea.fun"))
@@ -61,7 +60,7 @@ public class ConnectionHandler implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) throws ExecutionException {
         Player player = event.getPlayer();
-        userManager.getUserCache().get(player.getName()).ifPresentOrElse(user -> {
+        userManager.getCache().get(player.getName()).ifPresentOrElse(user -> {
             event.joinMessage(getConnectionMessage(user, true));
             universityScoreboard.addUser(user);
             if (user.hasSkinData()) {
@@ -82,7 +81,7 @@ public class ConnectionHandler implements Listener {
     public void onQuit(PlayerQuitEvent event) throws ExecutionException {
         Player player = event.getPlayer();
         universityScoreboard.removePlayer(player);
-        userManager.getUserCache().get(player.getName()).ifPresentOrElse(user -> event.quitMessage(getConnectionMessage(user, false)), () -> event.quitMessage(null));
+        userManager.getCache().get(player.getName()).ifPresentOrElse(user -> event.quitMessage(getConnectionMessage(user, false)), () -> event.quitMessage(null));
     }
 
     private Component getConnectionMessage(MireaUser<Player> user, boolean join) {

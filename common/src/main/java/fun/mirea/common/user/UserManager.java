@@ -34,7 +34,7 @@ public final class UserManager<T> {
     }
 
     @Getter
-    private final LoadingCache<String, Optional<MireaUser<T>>> userCache = CacheBuilder.newBuilder()
+    private final LoadingCache<String, Optional<MireaUser<T>>> cache = CacheBuilder.newBuilder()
             .maximumSize(30)
             .expireAfterAccess(Duration.ofMinutes(30))
             .removalListener((RemovalListener<String, Optional<MireaUser<T>>>) notification -> {
@@ -105,10 +105,9 @@ public final class UserManager<T> {
     }
 
     void createUser(MireaUser<T> user) {
-        userCache.put(user.getName(), Optional.of(user));
+        cache.put(user.getName(), Optional.of(user));
         try {
             ExecutionResult<Void> result = database.execute(String.format("INSERT INTO users VALUES ('%s', '%s')", user.getName(), gson.toJson(user))).get();
-            System.out.println(result.state());
             if (result.state() == ExecutionState.SUCCESS)
                 logger.log("Successfully created account for " + user.getName());
             else logger.error(result.stackTrace());

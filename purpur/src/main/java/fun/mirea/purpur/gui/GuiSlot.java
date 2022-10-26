@@ -1,9 +1,10 @@
 package fun.mirea.purpur.gui;
 
-import fun.mirea.purpur.utility.FormatUtils;
+import fun.mirea.common.format.FormatUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -30,10 +31,10 @@ public class GuiSlot {
         if (itemStack == null)
             itemStack = new ItemStack(material);
         ItemMeta itemMeta = itemStack.getItemMeta();
-        itemMeta.setDisplayName(FormatUtils.colorize(displayName));
-        List<String> lines = new ArrayList<>();
+        itemMeta.displayName(FormatUtils.colorize(displayName));
+        List<Component> lines = new ArrayList<>();
         for (String line : lore) lines.add(FormatUtils.colorize(line));
-        itemMeta.setLore(lines);
+        itemMeta.lore(lines);
         for (ItemFlag itemFlag : ItemFlag.values())
             itemMeta.addItemFlags(itemFlag);
         itemMeta.setUnbreakable(true);

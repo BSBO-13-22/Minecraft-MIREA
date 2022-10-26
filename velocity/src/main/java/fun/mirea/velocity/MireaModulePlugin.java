@@ -18,14 +18,12 @@ import com.velocitypowered.api.util.GameProfile;
 import fun.mirea.common.network.MojangClient;
 import fun.mirea.common.server.Configuration;
 import fun.mirea.common.server.ConsoleLogger;
-import fun.mirea.common.server.MireaComponent;
 import fun.mirea.common.user.MireaUser;
-import fun.mirea.common.user.PlayerProvider;
 import fun.mirea.common.user.UserManager;
 import fun.mirea.common.user.skin.SkinData;
 import fun.mirea.database.Database;
 import fun.mirea.database.SqlDatabase;
-import fun.mirea.velocity.command.SkinCommand;
+import fun.mirea.velocity.commands.SkinCommand;
 import fun.mirea.velocity.messaging.ChannelData;
 import fun.mirea.velocity.messaging.PluginMessage;
 import lombok.Getter;
@@ -129,7 +127,7 @@ public class MireaModulePlugin {
     private void registerCommands(BaseCommand... commands) {
         commandManager.getCommandContexts().registerIssuerAwareContext(MireaUser.class, context -> {
             try {
-                Optional<MireaUser<Player>> optional = userManager.getUserCache().get(context.getIssuer().getPlayer().getUsername());
+                Optional<MireaUser<Player>> optional = userManager.getCache().get(context.getIssuer().getPlayer().getUsername());
                 if (optional.isPresent())
                     return optional.get();
             } catch (ExecutionException e) {
@@ -171,7 +169,7 @@ public class MireaModulePlugin {
     @Subscribe
     public void onLogin(LoginEvent event) throws ExecutionException {
         Player player = event.getPlayer();
-        userManager.getUserCache().get(player.getUsername()).ifPresent(user -> {
+        userManager.getCache().get(player.getUsername()).ifPresent(user -> {
            if (user.hasSkinData()) {
                SkinData skinData = user.getSkinData();
                if (!skinData.getSignature().isEmpty() && !skinData.getValue().isEmpty()) {
