@@ -11,6 +11,9 @@ import fun.mirea.database.ExecutionResult;
 import fun.mirea.database.ExecutionState;
 import fun.mirea.database.SqlDatabase;
 import fun.mirea.common.format.FormatUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentBuilder;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.entity.Player;
 
 import java.sql.ResultSet;
@@ -53,26 +56,28 @@ public class SqlCommands extends BaseCommand {
                     builder.append(" ").append(param);
                 ExecutionResult<ResultSet> executionResult = database.executeQuery(builder.substring(1)).get();
                 if (executionResult.state() == ExecutionState.SUCCESS) {
-                    StringBuilder responseBuilder = new StringBuilder();
+                    ComponentBuilder<TextComponent, TextComponent.Builder> responseBuilder = Component.text();
                     ResultSet resultSet = executionResult.content();
                         while (resultSet.next()) {
-                            StringBuilder lineBuilder = new StringBuilder();
+                            ComponentBuilder<TextComponent, TextComponent.Builder> lineBuilder = Component.text();
                             int i = 1;
-                            String line = null;
+                            String line;
                             do {
                                 try {
                                     line = resultSet.getString(i);
-                                    lineBuilder.append(FormatUtils.colorize("&e")).append(line).append(" ");
+                                    lineBuilder.append(FormatUtils.colorize("&e"))
+                                            .append(Component.text(line))
+                                            .append(Component.space());
                                     i++;
                                 } catch (SQLException e) {
                                     line = null;
                                 }
                             } while (line != null);
-                            responseBuilder.append(lineBuilder.append(FormatUtils.colorize("\n&8&m")).append(" ".repeat(80)));
+                            responseBuilder.append(lineBuilder.append(Component.newline())
+                                    .append(FormatUtils.colorize("&8&m"))
+                                    .append(Component.text(" ".repeat(80))));
                         }
-                        if (!responseBuilder.isEmpty())
-                            player.sendMessage(responseBuilder.toString());
-                        else player.sendMessage(FormatUtils.colorize("&eСервер вернул пустой ответ."));
+                        player.sendMessage(responseBuilder.build());
                     } else player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Сервер вернул ошибку: {error}",
                         new Placeholder("error", executionResult.error())));
             } catch (InterruptedException | ExecutionException | SQLException e) {

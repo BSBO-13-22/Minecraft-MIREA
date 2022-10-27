@@ -1,7 +1,6 @@
 package fun.mirea.common.format;
 
 import lombok.Getter;
-import net.kyori.adventure.text.format.TextColor;
 
 public class Placeholder {
 

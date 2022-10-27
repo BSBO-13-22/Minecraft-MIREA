@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="database" />
+        <module name="dynmap" />
         <module name="velocity" />
         <module name="common" />
         <module name="purpur" />

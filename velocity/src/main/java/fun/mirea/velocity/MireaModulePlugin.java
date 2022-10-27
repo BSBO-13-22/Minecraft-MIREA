@@ -159,7 +159,7 @@ public class MireaModulePlugin {
         ServerPing serverPing = ServerPing.builder()
                 .favicon(defaultPing.getFavicon().get())
                 .description(motd)
-                .version(new ServerPing.Version(760, "МИРЭА"))
+                .version(new ServerPing.Version(760, "МИРЭА 1.19.2"))
                 .maximumPlayers(proxyServer.getPlayerCount() + 1)
                 .onlinePlayers(proxyServer.getPlayerCount())
                 .build();

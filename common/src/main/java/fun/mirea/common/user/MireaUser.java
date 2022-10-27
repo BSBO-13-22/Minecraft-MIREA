@@ -1,9 +1,13 @@
 package fun.mirea.common.user;
 
+import fun.mirea.common.server.SerializableLocation;
 import fun.mirea.common.user.skin.SkinData;
 import fun.mirea.common.user.university.UniversityData;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MireaUser<T> {
 
@@ -24,6 +28,9 @@ public class MireaUser<T> {
 
     @Setter
     private transient PlayerProvider<T> provider;
+
+    @Getter @Setter
+    private SerializableLocation homeLocation;
 
     public MireaUser(String name) {
         this.name = name;

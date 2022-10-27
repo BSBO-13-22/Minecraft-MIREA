@@ -1,9 +1,10 @@
 package fun.mirea.purpur.warps;
 
+import fun.mirea.common.server.SerializableLocation;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.purpur.MireaModulePlugin;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -11,23 +12,24 @@ import org.bukkit.entity.Player;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+@NoArgsConstructor
 public class Warp {
 
     @Getter
-    private final String name;
-    private final String creator;
-    private final WarpLocation location;
+    private String name;
+    private String creator;
+    private SerializableLocation location;
     @Getter
-    private final long creationDate;
+    private long creationDate;
 
     protected Warp(String name, String creator, Location location) {
         this.name = name;
         this.creator = creator;
-        this.location = WarpLocation.wrap(location);
+        this.location = new SerializableLocation(location.getWorld().getName(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
         this.creationDate = System.currentTimeMillis();
     }
 
-    protected Warp(String name, String creator, WarpLocation location) {
+    protected Warp(String name, String creator, SerializableLocation location) {
         this.name = name;
         this.creator = creator;
         this.location = location;
@@ -44,45 +46,6 @@ public class Warp {
     }
 
     public Location getLocation() {
-        return location.asBukkit();
+        return location.deserialize(Location.class);
     }
-
-    public static class WarpLocation {
-
-        protected static WarpLocation wrap(Location location) {
-            return new WarpLocation(location.getWorld().getName(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-        }
-
-        @Getter @Setter
-        private String world;
-
-        @Getter @Setter
-        private double x;
-
-        @Getter @Setter
-        private double y;
-
-        @Getter @Setter
-        private double z;
-
-        @Getter @Setter
-        private float yaw;
-
-        @Getter @Setter
-        private float pitch;
-
-        protected WarpLocation(String world, double x, double y, double z, float yaw, float pitch) {
-            this.world = world;
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.yaw = yaw;
-            this.pitch = pitch;
-        }
-
-        public Location asBukkit() {
-            return new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
-        }
-    }
-
 }

@@ -11,6 +11,8 @@ import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.server.ConsoleLogger;
 import fun.mirea.purpur.commands.*;
 import fun.mirea.purpur.commands.admin.SqlCommands;
+import fun.mirea.purpur.commands.home.HomeCommand;
+import fun.mirea.purpur.commands.home.SetHomeCommand;
 import fun.mirea.purpur.commands.warp.DelWarpCommand;
 import fun.mirea.purpur.commands.warp.SetWarpCommand;
 import fun.mirea.purpur.commands.warp.WarpCommand;
@@ -36,7 +38,9 @@ import org.apache.http.message.BasicHeader;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.dynmap.DynmapCommonAPI;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,6 +79,9 @@ public class MireaModulePlugin extends JavaPlugin {
     @Getter
     private static WarpManager warpManager;
 
+    @Getter
+    private static DynmapCommonAPI dynmapApi;
+
     @Override
     public void onEnable() {
         createFiles();
@@ -85,8 +92,9 @@ public class MireaModulePlugin extends JavaPlugin {
                 new ProfileCommands(userManager, universityScoreboard),
                 new ResourcePackCommand(),
                 new SqlCommands(database),
-                new WarpCommand(warpManager), new SetWarpCommand(warpManager), new DelWarpCommand(warpManager));
-        registerHandlers(new ChatHandler(userManager), new ConnectionHandler(userManager, universityScoreboard), new GuiHandler(guiManager), new PlayerHandler());
+                new WarpCommand(warpManager), new SetWarpCommand(warpManager), new DelWarpCommand(warpManager),
+                new HomeCommand(), new SetHomeCommand());
+        registerHandlers(new ChatHandler(userManager), new ConnectionHandler(userManager, universityScoreboard), new GuiHandler(guiManager), new PlayerHandler(userManager));
         registerMessagingAdapter("mirea:user");
     }
 
@@ -114,6 +122,11 @@ public class MireaModulePlugin extends JavaPlugin {
         userManager = new UserManager<>(Bukkit::getPlayerExact, database, logger);
         universityScoreboard = new UniversityScoreboard(userManager);
         warpManager = new WarpManager(database, logger);
+        Plugin dynmapPlugin = Bukkit.getPluginManager().getPlugin("dynmap");
+        if (dynmapPlugin != null) {
+            dynmapApi = (DynmapCommonAPI) dynmapPlugin;
+            dynmapApi.getMarkerAPI().createMarkerSet("mirea_warps", "Варпы", null, false);
+        }
     }
 
     private void createFiles() {

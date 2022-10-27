@@ -7,15 +7,21 @@ import com.google.common.cache.RemovalListener;
 import com.google.gson.Gson;
 import fun.mirea.common.server.ConsoleLogger;
 import fun.mirea.common.user.MireaUser;
+import fun.mirea.common.user.university.Institute;
 import fun.mirea.database.Database;
 import fun.mirea.database.ExecutionResult;
 import fun.mirea.database.ExecutionState;
+import fun.mirea.purpur.MireaModulePlugin;
 import lombok.Getter;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.dynmap.markers.Marker;
+import org.dynmap.markers.MarkerAPI;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -61,46 +67,77 @@ public class WarpManager {
         return () -> database.executeQuery("SELECT * FROM warps").thenAcceptAsync(result -> {
            if (result.state() == ExecutionState.SUCCESS) {
                ResultSet resultSet = result.content();
-               int warpsCount = 0;
                try {
+                   int warpsCount = 0;
                    while (resultSet.next()) {
                        Warp warp = gson.fromJson(resultSet.getString("data"), Warp.class);
                        cache.put(warp.getName().toLowerCase(), Optional.of(warp));
                        warpsCount++;
                    }
+                   if (warpsCount > 0) logger.log("Successfully loaded " + warpsCount + " warp(s) form database!");
                } catch (SQLException e) {
                    e.printStackTrace();
                }
-               if (warpsCount > 0) logger.log(String.format("Successfully loaded %s warp(s) from database", warpsCount));
            } else logger.error(result.stackTrace());
         });
     }
 
-    public Warp registerWarp(String name, String owner, Location location) {
+    public CompletableFuture<Optional<Warp>> registerWarp(String name, String owner, Location location) {
         Warp warp = new Warp(name, owner, location);
-        cache.put(name.toLowerCase(), Optional.of(warp));
-        try {
-            ExecutionResult<Void> result = database.execute(String.format("INSERT INTO warps VALUES ('%s', '%s')", name, gson.toJson(warp))).get();
-            if (result.state() == ExecutionState.SUCCESS)
+        return database.execute(String.format("INSERT INTO warps VALUES ('%s', '%s')", name, gson.toJson(warp))).thenApply(result -> {
+            if (result.state() == ExecutionState.SUCCESS) {
+                cache.put(name.toLowerCase(), Optional.of(warp));
                 logger.log("Successfully registered warp \"" + name + "\"");
-            else logger.error(result.stackTrace());
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        return warp;
+                drawDynmapMarker(warp);
+                return Optional.of(warp);
+            } else logger.error(result.stackTrace());
+            return Optional.empty();
+        });
     }
 
-    public boolean unregisterWarp(String name) {
-        try {
-            Optional<Warp> warp = cache.get(name.toLowerCase());
-            if (warp.isPresent()) {
-                cache.asMap().remove(name.toLowerCase());
-                database.execute(String.format("DELETE FROM warps WHERE name ILIKE '%s'", name));
-                return true;
+    public CompletableFuture<Void> unregisterWarp(String name) {
+       return database.execute(String.format("DELETE FROM warps WHERE name ILIKE '%s'", name)).thenAccept(result -> {
+           cache.asMap().remove(name.toLowerCase());
+           removeDynmapMarker(name);
+       });
+    }
+
+    private void drawDynmapMarker(Warp warp) {
+        if (MireaModulePlugin.getDynmapApi() != null) {
+            Location location = warp.getLocation();
+            MarkerAPI markerApi = MireaModulePlugin.getDynmapApi().getMarkerAPI();
+            Marker marker = markerApi.getMarkerSet("mirea_warps")
+                    .createMarker("warp_" + warp.getName().toLowerCase(),
+                            "Варп «" + warp.getName() + "»",
+                            true,
+                            location.getWorld().getName(),
+                            location.getX(),
+                            location.getY(),
+                            location.getZ(),
+                            markerApi.getMarkerIcon("compass"),
+                            false);
+            if (marker != null) {
+                StringBuilder description = new StringBuilder();
+                description.append("<h3>Варп «").append(warp.getName()).append("»</h3>");
+                warp.getCreator().ifPresent(creator -> {
+                    String creatorField = "Создатель: ";
+                    if (creator.hasUniversityData()) {
+                        Institute institute = Institute.of(creator.getUniversityData().getInstitute());
+                        creatorField += "<font color=\"" + institute.getColorScheme() + "\">" + institute.getPrefix() + " " + creator.getName() + "</font>";
+                    } else creatorField += creator.getName();
+                    description.append(creatorField).append("<br>");
+                });
+                description.append("Создан: ").append(new SimpleDateFormat("d MMMM HH:mm").format(warp.getCreationDate()));
+                marker.setDescription(description.toString());
             }
-        } catch (ExecutionException e) {
-            e.printStackTrace();
         }
-        return false;
+    }
+
+    private void removeDynmapMarker(String name) {
+        if (MireaModulePlugin.getDynmapApi() != null) {
+            MarkerAPI markerApi = MireaModulePlugin.getDynmapApi().getMarkerAPI();
+            Marker marker = markerApi.getMarkerSet("mirea_warps").findMarker("warp_" + name.toLowerCase());
+            if (marker != null) marker.deleteMarker();
+        }
     }
 }

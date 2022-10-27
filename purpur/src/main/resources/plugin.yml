@@ -7,3 +7,4 @@ description: Плагин разработан специально для се�
 website: https://drkapdor.github.io/
 softdepend:
   - ProtocolLib
+  - dynmap

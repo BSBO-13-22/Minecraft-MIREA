@@ -6,7 +6,6 @@ import co.aikar.commands.annotation.Syntax;
 import fun.mirea.common.format.MireaComponent;
 import fun.mirea.common.format.Placeholder;
 import fun.mirea.common.user.MireaUser;
-import fun.mirea.purpur.warps.Warp;
 import fun.mirea.purpur.warps.WarpManager;
 import org.bukkit.entity.Player;
 
@@ -24,10 +23,16 @@ public class SetWarpCommand extends BaseCommand {
     @Syntax("<название>")
     public void onSetWarpCommand(MireaUser<Player> user, String name) throws ExecutionException {
         Player player = user.getPlayer();
-        warpManager.getCache().get(name).ifPresentOrElse(warp -> player.sendActionBar(new MireaComponent(MireaComponent.Type.ERROR,
-                        "Варп с названием &6{name} &суже существует!", new Placeholder("name", warp.getName()))), () -> {
-            Warp warp = warpManager.registerWarp(name, player.getName(), player.getLocation());
-            player.sendMessage(new MireaComponent(MireaComponent.Type.SUCCESS, "Варп &e{name} &rуспешно создан!", new Placeholder("name", warp.getName())));
+        warpManager.getCache().get(name.toLowerCase()).ifPresentOrElse(warp -> player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR,
+                        "Варп с названием &6{name} &cуже существует!", new Placeholder("name", warp.getName()))), () -> {
+            try {
+                warpManager.registerWarp(name, player.getName(), player.getLocation()).get().ifPresentOrElse(warp ->
+                                player.sendMessage(new MireaComponent(MireaComponent.Type.SUCCESS, "Варп &e{name} &rуспешно создан!",
+                                        new Placeholder("name", warp.getName()))),
+                        () -> player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Не удалось создать варп! Пожалуйста, сообщите об этом &6@drkapdor")));
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
         });
     }
 }

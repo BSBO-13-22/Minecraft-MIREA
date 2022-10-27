@@ -13,6 +13,7 @@
         <module>purpur</module>
         <module>common</module>
         <module>database</module>
+        <module>dynmap</module>
     </modules>
 
     <properties>

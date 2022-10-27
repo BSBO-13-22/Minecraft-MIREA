@@ -97,7 +97,7 @@ public class GuiCommands extends BaseCommand {
     }
 
     private CompletableFuture<JsonObject> getGroupSchedule(String groupName) {
-        return  CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             HttpClientBuilder clientBuilder = HttpClients.custom();
             clientBuilder.setDefaultHeaders(Arrays.asList(new BasicHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType())));
             CloseableHttpClient httpClient = clientBuilder.build();

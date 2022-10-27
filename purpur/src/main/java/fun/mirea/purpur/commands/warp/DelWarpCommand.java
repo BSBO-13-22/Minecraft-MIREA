@@ -28,15 +28,18 @@ public class DelWarpCommand extends BaseCommand {
     @CommandAlias("delwarp")
     @Syntax("<название>")
     @CommandCompletion("@warps")
-    public void onWarpCommand(MireaUser<Player> user, String name) throws ExecutionException {
+    public void onDelWarpCommand(MireaUser<Player> user, String name) throws ExecutionException {
         Player player = user.getPlayer();
-        warpManager.getCache().get(name).ifPresentOrElse(warp -> {
+        warpManager.getCache().get(name.toLowerCase()).ifPresentOrElse(warp -> {
             warp.getCreator().ifPresentOrElse(creator -> {
                 if (user.getName().equals(creator.getName()) || player.isOp()) {
-                    if (warpManager.unregisterWarp(warp.getName())) {
+                    try {
+                        warpManager.unregisterWarp(warp.getName()).get();
                         player.sendMessage(new MireaComponent(MireaComponent.Type.SUCCESS, "Варп &e{name}&r был успешно удалён!",
                                 new Placeholder("name", warp.getName())));
-                    } else player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Не удалось удалить этот варп!"));
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
                 } else player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Варп может удалить только его владелец!"));
             }, () -> player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Не удалось удалить этот варп!")));
         }, () -> player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Варп с таким названием не существует!")));
