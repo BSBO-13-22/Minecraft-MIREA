@@ -1,6 +1,5 @@
 package fun.mirea.purpur.commands.admin;
 
-import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Subcommand;
 import co.aikar.commands.annotation.Syntax;
@@ -9,8 +8,8 @@ import fun.mirea.common.format.Placeholder;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.database.ExecutionResult;
 import fun.mirea.database.ExecutionState;
-import fun.mirea.database.SqlDatabase;
 import fun.mirea.common.format.FormatUtils;
+import fun.mirea.purpur.commands.BukkitMireaCommand;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentBuilder;
 import net.kyori.adventure.text.TextComponent;
@@ -21,13 +20,7 @@ import java.sql.SQLException;
 import java.util.concurrent.ExecutionException;
 
 @CommandAlias("sql")
-public class SqlCommands extends BaseCommand {
-
-    private final SqlDatabase database;
-
-    public SqlCommands(SqlDatabase database) {
-        this.database = database;
-    }
+public class SqlCommands extends BukkitMireaCommand {
 
     @Subcommand("execute")
     @Syntax("<запрос> <парметры...>")

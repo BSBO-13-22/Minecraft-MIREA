@@ -1,6 +1,5 @@
-package fun.mirea.purpur.commands;
+package fun.mirea.purpur.commands.user;
 
-import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
 import co.aikar.commands.annotation.HelpCommand;
 import com.google.gson.JsonObject;
@@ -8,12 +7,11 @@ import com.google.gson.JsonParser;
 import fun.mirea.common.format.MireaComponent;
 import fun.mirea.common.format.Placeholder;
 import fun.mirea.common.user.StudentName;
-import fun.mirea.purpur.scoreboard.UniversityScoreboard;
+import fun.mirea.purpur.commands.BukkitMireaCommand;
 import fun.mirea.common.format.FormatUtils;
 import fun.mirea.common.user.university.Institute;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.university.UniversityData;
-import fun.mirea.common.user.UserManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentBuilder;
 import net.kyori.adventure.text.TextComponent;
@@ -38,15 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @CommandAlias("card")
-public class ProfileCommands extends BaseCommand {
-
-    private final UserManager<Player> userManager;
-    private final UniversityScoreboard scoreboard;
-
-    public ProfileCommands(UserManager<Player> userManager, UniversityScoreboard scoreboard) {
-        this.userManager = userManager;
-        this.scoreboard = scoreboard;
-    }
+public class ProfileCommands extends BukkitMireaCommand {
 
     @Subcommand("profile")
     @Syntax("[никнейм]")
@@ -115,7 +105,7 @@ public class ProfileCommands extends BaseCommand {
                                     "\n&r\n &8| &7Институт: " + Institute.of(universityData.getInstitute()) +
                                     "\n &8| &7Группа: &f" + universityData.getGroupName() +
                                     "\n &8| &7Аббревиатура: &f" + universityData.getGroupSuffix() + "\n&r"));
-                    scoreboard.updatePlayer(user);
+                    universityScoreboard.updatePlayer(user);
                 } else player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Не удалось найти указанную группу!"));
             }).get();
         } else  player.sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Вы уже состоите в группе {group}&с!",

@@ -1,17 +1,16 @@
 package fun.mirea.purpur.commands.home;
 
-import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import fun.mirea.common.format.MireaComponent;
 import fun.mirea.common.format.Placeholder;
 import fun.mirea.common.server.SerializableLocation;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.purpur.MireaModulePlugin;
-import org.bukkit.Bukkit;
+import fun.mirea.purpur.commands.BukkitMireaCommand;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-public class SetHomeCommand extends BaseCommand {
+public class SetHomeCommand extends BukkitMireaCommand {
 
     @CommandAlias("sethome")
     public void onSetHomeCommand(MireaUser<Player> user) {

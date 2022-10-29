@@ -1,11 +1,11 @@
 package fun.mirea.purpur.commands.home;
 
-import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Optional;
 import fun.mirea.common.format.MireaComponent;
 import fun.mirea.common.server.SerializableLocation;
 import fun.mirea.common.user.MireaUser;
+import fun.mirea.purpur.commands.BukkitMireaCommand;
 import fun.mirea.purpur.utility.timer.TeleportTimer;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -15,7 +15,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HomeCommand extends BaseCommand {
+public class HomeCommand extends BukkitMireaCommand {
 
     private final List<String> timedPlayers;
 

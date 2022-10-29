@@ -17,10 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
-public class MineSkinClient {
+public class MineSkinApiClient {
 
     private static final String GENERATE_ENDPOINT = "https://api.mineskin.org/generate/";
 
@@ -28,7 +26,7 @@ public class MineSkinClient {
     private final CloseableHttpClient client;
     private final RequestConfig config;
 
-    public MineSkinClient(String apiToken) {
+    public MineSkinApiClient(String apiToken) {
         this.apiToken = apiToken;
         this.client = HttpClients.createDefault();
         this.config = RequestConfig.custom()

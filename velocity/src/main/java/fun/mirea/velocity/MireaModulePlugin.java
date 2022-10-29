@@ -15,7 +15,8 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
 import com.velocitypowered.api.util.GameProfile;
-import fun.mirea.common.network.MojangClient;
+import fun.mirea.common.network.MineSkinApiClient;
+import fun.mirea.common.network.MojangApiClient;
 import fun.mirea.common.server.Configuration;
 import fun.mirea.common.server.ConsoleLogger;
 import fun.mirea.common.user.MireaUser;
@@ -52,17 +53,18 @@ public class MireaModulePlugin {
     private static Database database;
     @Getter
     private static UserManager<Player> userManager;
-
     @Getter
     private static VelocityCommandManager commandManager;
+    @Getter
+    private static MojangApiClient mojangApi;
+    @Getter
+    private static MineSkinApiClient mineSkinApi;
     @Getter
     private final ProxyServer proxyServer;
     @Getter
     private final Logger logger;
     @Getter
     private final Path dataDirectory;
-
-    private MojangClient mojangClient;
 
     private static int registeredUsers = 0;
 
@@ -98,8 +100,9 @@ public class MireaModulePlugin {
                 }
         });
         commandManager = new VelocityCommandManager(proxyServer, this);
-        mojangClient = new MojangClient();
-        registerCommands(new SkinCommand(userManager, configuration.getMineSkinToken(), mojangClient));
+        mojangApi = new MojangApiClient();
+        mineSkinApi = new MineSkinApiClient(configuration.getMineSkinToken());
+        registerCommands(new SkinCommand());
         runRegisteredUsersUpdater();
     }
 
@@ -177,9 +180,9 @@ public class MireaModulePlugin {
                    event.getPlayer().setGameProfileProperties(Collections.singletonList(skinProperty));
                }
            } else {
-               mojangClient.getLicenseId(player.getUsername()).thenAcceptAsync(optionalId -> {
+               mojangApi.getLicenseId(player.getUsername()).thenAcceptAsync(optionalId -> {
                    optionalId.ifPresentOrElse(uuid -> {
-                       mojangClient.getLicenseSkin(uuid).thenAcceptAsync(optionalSkin -> {
+                       mojangApi.getLicenseSkin(uuid).thenAcceptAsync(optionalSkin -> {
                            optionalSkin.ifPresent(skinData -> {
                                GameProfile.Property skinProperty = new GameProfile.Property("textures", skinData.getValue(), skinData.getSignature());
                                event.getPlayer().setGameProfileProperties(Collections.singletonList(skinProperty));

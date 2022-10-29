@@ -1,23 +1,16 @@
 package fun.mirea.purpur.commands.warp;
 
-import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Syntax;
 import fun.mirea.common.format.MireaComponent;
 import fun.mirea.common.format.Placeholder;
 import fun.mirea.common.user.MireaUser;
-import fun.mirea.purpur.warps.WarpManager;
+import fun.mirea.purpur.commands.BukkitMireaCommand;
 import org.bukkit.entity.Player;
 
 import java.util.concurrent.ExecutionException;
 
-public class SetWarpCommand extends BaseCommand {
-
-    private final WarpManager warpManager;
-
-    public SetWarpCommand(WarpManager warpManager) {
-        this.warpManager = warpManager;
-    }
+public class SetWarpCommand extends BukkitMireaCommand {
 
     @CommandAlias("setwarp")
     @Syntax("<название>")

@@ -5,16 +5,18 @@ import co.aikar.commands.annotation.*;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.util.GameProfile;
+import fun.mirea.common.format.FormatUtils;
 import fun.mirea.common.format.MireaComponent;
 import fun.mirea.common.format.Patterns;
 import fun.mirea.common.user.MireaUser;
 import fun.mirea.common.user.UserManager;
 import fun.mirea.common.user.skin.SkinData;
 import fun.mirea.velocity.MireaModulePlugin;
-import fun.mirea.common.network.MineSkinClient;
-import fun.mirea.common.network.MojangClient;
+import fun.mirea.common.network.MineSkinApiClient;
+import fun.mirea.common.network.MojangApiClient;
 import fun.mirea.velocity.messaging.ChannelData;
 import fun.mirea.velocity.messaging.PluginMessage;
+import net.kyori.adventure.text.event.ClickEvent;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -23,34 +25,29 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-public class SkinCommand extends BaseCommand {
-
-    private final UserManager<Player> userManager;
-    private final MineSkinClient skinClient;
-    private final MojangClient mojangClient;
-    public SkinCommand(UserManager<Player> userManager, String mineSkinToken, MojangClient mojangClient) {
-        this.userManager = userManager;
-        this.skinClient = new MineSkinClient(mineSkinToken);
-        this.mojangClient = mojangClient;
-    }
+public class SkinCommand extends ProxyMireaCommand {
 
     @CommandAlias("skin")
-    @Syntax("<никнейм> / url <ссылка>")
+    @Syntax("<никнейм> | url <ссылка>")
     public void onSkinCommand(MireaUser<Player> sender, String[] args) {
         if (args.length == 1 && !args[0].equalsIgnoreCase("url"))
             skinFromLicenseOption(sender, args[0]);
         else if (args.length == 1 && args[0].equalsIgnoreCase("url"))
-            sender.getPlayer().sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Используйте: &6/skin url <ссылка>"));
+            sender.getPlayer().sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Используйте: &6/skin url <ссылка>")
+                    .hoverEvent(FormatUtils.colorize("&e▶ Использовать"))
+                    .clickEvent(ClickEvent.suggestCommand("/skin url ")));
         else if (args.length == 2 && args[0].equalsIgnoreCase("url"))
             skinFromImageOption(sender, args[1]);
-        else sender.getPlayer().sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Используйте: &6/skin <никнейм|url>"));
+        else sender.getPlayer().sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Используйте: &6/skin <никнейм | url>")
+                    .hoverEvent(FormatUtils.colorize("&e▶ Использовать"))
+                    .clickEvent(ClickEvent.suggestCommand("/skin ")));
     }
 
     public void skinFromLicenseOption(MireaUser<Player> sender, String nickname) {
         sender.getPlayer().sendMessage(new MireaComponent(MireaComponent.Type.INFO, "Обрабатываем запрос..."));
-        mojangClient.getLicenseId(nickname).thenAcceptAsync(optionalId -> {
+        mojangApi.getLicenseId(nickname).thenAcceptAsync(optionalId -> {
             optionalId.ifPresentOrElse(uuid -> {
-                mojangClient.getLicenseSkin(uuid).thenAcceptAsync(optionalSkin -> {
+                mojangApi.getLicenseSkin(uuid).thenAcceptAsync(optionalSkin -> {
                     optionalSkin.ifPresentOrElse(skinData -> {
                         setUserSkin(sender, skinData);
                     }, () -> sender.getPlayer().sendMessage(new MireaComponent(MireaComponent.Type.ERROR, "Не удалось обновить скин.")));
@@ -74,7 +71,7 @@ public class SkinCommand extends BaseCommand {
             }).thenAcceptAsync(skinFile -> {
                 if (skinFile != null) {
                     try {
-                        SkinData skinData = skinClient.uploadSkin(skinFile).get();
+                        SkinData skinData = mineSkinApi.uploadSkin(skinFile).get();
                         skinFile.delete();
                         setUserSkin(sender, skinData);
                     } catch (InterruptedException | ExecutionException e) {

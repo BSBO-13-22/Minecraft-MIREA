@@ -9,10 +9,9 @@ import org.bukkit.entity.Player;
 
 public abstract class TeleportTimer {
 
-    private final Player player;
+    private Player player;
     private final Location targetLocation;
     private final Location lastLocation;
-
     private int taskId;
     private int timer = 3;
 
@@ -25,7 +24,8 @@ public abstract class TeleportTimer {
     public void start(boolean bypass) {
         if (!bypass) {
             taskId = Bukkit.getScheduler().runTaskTimer(MireaModulePlugin.getInstance(), () -> {
-                if (player.isOnline()) {
+                player = Bukkit.getPlayerExact(player.getName());
+                if (player != null && player.isOnline()) {
                     if (timer > 0) {
                         Location loc = player.getLocation();
                         if (loc.distance(lastLocation) <= 1) {

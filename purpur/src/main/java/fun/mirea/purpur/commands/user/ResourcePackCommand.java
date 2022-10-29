@@ -1,4 +1,4 @@
-package fun.mirea.purpur.commands;
+package fun.mirea.purpur.commands.user;
 
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;

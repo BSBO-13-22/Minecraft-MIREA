@@ -15,7 +15,7 @@ import java.io.InputStreamReader;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class MojangClient {
+public class MojangApiClient {
 
     private static final String USERS_SERVICE_URL = "https://api.mojang.com/users/profiles/minecraft/{name}";
     private static final String SESSION_SERVICE_URL = "https://sessionserver.mojang.com/session/minecraft/profile/{uuid}?unsigned=false";
@@ -23,7 +23,7 @@ public class MojangClient {
     private final CloseableHttpClient client;
     private final RequestConfig config;
 
-    public MojangClient() {
+    public MojangApiClient() {
         this.client = HttpClients.createDefault();
         this.config = RequestConfig.custom()
                 .setSocketTimeout(3000)

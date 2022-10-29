@@ -1,15 +1,13 @@
 package fun.mirea.purpur.commands.warp;
 
-import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandCompletion;
 import co.aikar.commands.annotation.Syntax;
-import fun.mirea.common.format.FormatUtils;
 import fun.mirea.common.format.MireaComponent;
 import fun.mirea.common.format.Placeholder;
 import fun.mirea.common.user.MireaUser;
+import fun.mirea.purpur.commands.BukkitMireaCommand;
 import fun.mirea.purpur.utility.timer.TeleportTimer;
-import fun.mirea.purpur.warps.WarpManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentBuilder;
 import net.kyori.adventure.text.TextComponent;
@@ -20,13 +18,11 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-public class WarpCommand extends BaseCommand {
+public class WarpCommand extends BukkitMireaCommand {
 
-    private final WarpManager warpManager;
     private final List<String> timedPlayers;
 
-    public WarpCommand(WarpManager warpManager) {
-        this.warpManager = warpManager;
+    public WarpCommand() {
         this.timedPlayers = new ArrayList<>();
     }
 

@@ -30,7 +30,7 @@ public class ChestGui implements InventoryGui {
 
     @Override
     public void load() {
-        Bukkit.getScheduler().runTask(MireaModulePlugin.getInstance(), () -> slotMap.forEach((slot, content) -> inventory.setItem(slot, content.toItemStack())));
+        Bukkit.getScheduler().runTask(MireaModulePlugin.getInstance(), () -> slotMap.forEach((slot, content) -> inventory.setItem(slot, content.getItemStack())));
     }
 
     @Override

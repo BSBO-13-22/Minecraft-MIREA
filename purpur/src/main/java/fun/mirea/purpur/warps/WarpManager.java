@@ -17,6 +17,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerAPI;
+import org.dynmap.markers.MarkerSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
@@ -46,6 +47,7 @@ public class WarpManager {
                             ResultSet resultSet = executionResult.content();
                             if (resultSet != null && resultSet.next()) {
                                 Warp warp = gson.fromJson(resultSet.getString("data"), Warp.class);
+                                drawDynmapMarker(warp);
                                 return Optional.of(warp);
                             }
                         } else logger.error(executionResult.stackTrace());
@@ -64,17 +66,13 @@ public class WarpManager {
     }
 
     private Runnable loadWarps() {
-        return () -> database.executeQuery("SELECT * FROM warps").thenAcceptAsync(result -> {
+        return () -> database.executeQuery("SELECT name FROM warps").thenAcceptAsync(result -> {
            if (result.state() == ExecutionState.SUCCESS) {
                ResultSet resultSet = result.content();
                try {
-                   int warpsCount = 0;
-                   while (resultSet.next()) {
-                       Warp warp = gson.fromJson(resultSet.getString("data"), Warp.class);
-                       cache.put(warp.getName().toLowerCase(), Optional.of(warp));
-                       warpsCount++;
-                   }
-                   if (warpsCount > 0) logger.log("Successfully loaded " + warpsCount + " warp(s) form database!");
+                   while (resultSet.next())
+                       cache.refresh(resultSet.getString("name"));
+                   logger.log("Successfully loaded " + cache.size() + " warp(s) form database!");
                } catch (SQLException e) {
                    e.printStackTrace();
                }
@@ -106,29 +104,31 @@ public class WarpManager {
         if (MireaModulePlugin.getDynmapApi() != null) {
             Location location = warp.getLocation();
             MarkerAPI markerApi = MireaModulePlugin.getDynmapApi().getMarkerAPI();
-            Marker marker = markerApi.getMarkerSet("mirea_warps")
-                    .createMarker("warp_" + warp.getName().toLowerCase(),
-                            "Варп «" + warp.getName() + "»",
-                            true,
-                            location.getWorld().getName(),
-                            location.getX(),
-                            location.getY(),
-                            location.getZ(),
-                            markerApi.getMarkerIcon("compass"),
-                            false);
-            if (marker != null) {
-                StringBuilder description = new StringBuilder();
-                description.append("<h3>Варп «").append(warp.getName()).append("»</h3>");
-                warp.getCreator().ifPresent(creator -> {
-                    String creatorField = "Создатель: ";
-                    if (creator.hasUniversityData()) {
-                        Institute institute = Institute.of(creator.getUniversityData().getInstitute());
-                        creatorField += "<font color=\"" + institute.getColorScheme() + "\">" + institute.getPrefix() + " " + creator.getName() + "</font>";
-                    } else creatorField += creator.getName();
-                    description.append(creatorField).append("<br>");
-                });
-                description.append("Создан: ").append(new SimpleDateFormat("d MMMM HH:mm").format(warp.getCreationDate()));
-                marker.setDescription(description.toString());
+            MarkerSet markerSet = markerApi.getMarkerSet("mirea_warps");
+            if (markerSet.findMarker("warp_" + warp.getName().toLowerCase()) == null) {
+                Marker marker = markerSet.createMarker("warp_" + warp.getName().toLowerCase(),
+                        "Варп «" + warp.getName() + "»",
+                        true,
+                        location.getWorld().getName(),
+                        location.getX(),
+                        location.getY(),
+                        location.getZ(),
+                        markerApi.getMarkerIcon("compass"),
+                        false);
+                if (marker != null) {
+                    StringBuilder description = new StringBuilder();
+                    description.append("<h3>Варп «").append(warp.getName()).append("»</h3>");
+                    warp.getCreator().ifPresent(creator -> {
+                        String creatorField = "Создатель: ";
+                        if (creator.hasUniversityData()) {
+                            Institute institute = Institute.of(creator.getUniversityData().getInstitute());
+                            creatorField += "<font color=\"" + institute.getColorScheme() + "\">" + institute.getPrefix() + " " + creator.getName() + "</font>";
+                        } else creatorField += creator.getName();
+                        description.append(creatorField).append("<br>");
+                    });
+                    description.append("Создан: ").append(new SimpleDateFormat("d MMMM HH:mm").format(warp.getCreationDate()));
+                    marker.setDescription(description.toString());
+                }
             }
         }
     }
